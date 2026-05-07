@@ -2,12 +2,19 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <filesystem>
 
 
 class writer {
     private:
-        const std::string _getUserName();
+        void _createFile(const std::string& symbol, const std::string& type);
+
+        const std::filesystem::path _getUserName();
+        const std::filesystem::path _getHomeDir();
+
+        std::filesystem::path _path;
+        std::ofstream _file;
     public:
-        writer(/* args */);
+        writer();
 
 };

@@ -1,8 +1,41 @@
 #pragma once
 #include "writer.hpp"
 
-const std::string writer::_getUserName(){
+writer::writer(){
+    _path = _getHomeDir() / _getUserName() / "Oraculum";
+    std::filesystem::create_directories(_path);
+}
+
+void writer::_createFile(const std::string& symbol,const std::string& type){
+    _file = std::ofstream(_path/(symbol+"-"+type), std::ios::app);
+}
+
+const std::filesystem::path writer::_getUserName(){
     #ifdef _WIN32
-        const std::string username = std::getenv("USERNAME");
+        const char* user = std::getenv("USERNAME");
+    #else
+        const char* user = std::getenv("USER");
     #endif
+
+    if (!user){
+        throw std::runtime_error("No valid user name found.");
+        return "";
+    }
+
+    return std::filesystem::path(user);
+}
+
+const std::filesystem::path writer::_getHomeDir(){
+    #ifdef _WIN32
+        const char* homeDir = std::getenv("USERPROFILE");
+    #else
+        const char* homeDir = std::getenv("HOME");
+    #endif
+
+    if (!homeDir){
+        throw std::runtime_error("No valid homeDir found.");
+        return "";
+    }
+
+    return std::filesystem::path(homeDir);
 }
