@@ -1,6 +1,6 @@
 # Oraculum
 
-**Oraculum** is a portable C++ market microstructure data recorder designed for quantitative research, order book analysis, and machine learning-based trading experiments.The project focuses on collecting high-frequency market data such as order book snapshots, trades, quotes, and derived features, then storing them locally in a clean append-only format for future backtesting and ML model training.
+Oraculum is a portable C++ market microstructure data recorder designed for quantitative research, order book analysis, and machine learning-based trading experiments.The project focuses on collecting high-frequency market data such as order book snapshots, trades, quotes, and derived features, then storing them locally in a clean append-only format for future backtesting and ML model training.
 ---
 
 ## Overview
