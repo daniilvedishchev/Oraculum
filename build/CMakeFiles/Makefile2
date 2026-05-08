@@ -85,12 +85,12 @@ clean: CMakeFiles/ORACULUM.dir/clean
 CMakeFiles/ORACULUM.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kodalir/GitHub/Oraculum/build/CMakeFiles --progress-num=1,2 "Built target ORACULUM"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kodalir/GitHub/Oraculum/build/CMakeFiles --progress-num=1,2,3 "Built target ORACULUM"
 .PHONY : CMakeFiles/ORACULUM.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ORACULUM.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kodalir/GitHub/Oraculum/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kodalir/GitHub/Oraculum/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/ORACULUM.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kodalir/GitHub/Oraculum/build/CMakeFiles 0
 .PHONY : CMakeFiles/ORACULUM.dir/rule
@@ -102,7 +102,7 @@ ORACULUM: CMakeFiles/ORACULUM.dir/rule
 # codegen rule for target.
 CMakeFiles/ORACULUM.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kodalir/GitHub/Oraculum/build/CMakeFiles --progress-num=1,2 "Finished codegen for target ORACULUM"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kodalir/GitHub/Oraculum/build/CMakeFiles --progress-num=1,2,3 "Finished codegen for target ORACULUM"
 .PHONY : CMakeFiles/ORACULUM.dir/codegen
 
 # clean rule for target.

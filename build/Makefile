@@ -153,6 +153,30 @@ main/oraculum.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/main/oraculum.cpp.s
 .PHONY : main/oraculum.cpp.s
 
+writer/writer.o: writer/writer.cpp.o
+.PHONY : writer/writer.o
+
+# target to build an object file
+writer/writer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/writer/writer.cpp.o
+.PHONY : writer/writer.cpp.o
+
+writer/writer.i: writer/writer.cpp.i
+.PHONY : writer/writer.i
+
+# target to preprocess a source file
+writer/writer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/writer/writer.cpp.i
+.PHONY : writer/writer.cpp.i
+
+writer/writer.s: writer/writer.cpp.s
+.PHONY : writer/writer.s
+
+# target to generate assembly for a file
+writer/writer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ORACULUM.dir/build.make CMakeFiles/ORACULUM.dir/writer/writer.cpp.s
+.PHONY : writer/writer.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -165,6 +189,9 @@ help:
 	@echo "... main/oraculum.o"
 	@echo "... main/oraculum.i"
 	@echo "... main/oraculum.s"
+	@echo "... writer/writer.o"
+	@echo "... writer/writer.i"
+	@echo "... writer/writer.s"
 .PHONY : help
 
 

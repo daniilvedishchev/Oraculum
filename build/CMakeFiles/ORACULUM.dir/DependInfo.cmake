@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/kodalir/GitHub/Oraculum/main/oraculum.cpp" "CMakeFiles/ORACULUM.dir/main/oraculum.cpp.o" "gcc" "CMakeFiles/ORACULUM.dir/main/oraculum.cpp.o.d"
+  "/Users/kodalir/GitHub/Oraculum/writer/writer.cpp" "CMakeFiles/ORACULUM.dir/writer/writer.cpp.o" "gcc" "CMakeFiles/ORACULUM.dir/writer/writer.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

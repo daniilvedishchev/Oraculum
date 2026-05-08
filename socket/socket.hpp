@@ -1,3 +1,4 @@
+#pragma once
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <string>
 

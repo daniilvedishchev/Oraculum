@@ -1,13 +1,17 @@
-#pragma once
 #include "writer.hpp"
 
 writer::writer(){
-    _path = _getHomeDir() / _getUserName() / "Oraculum";
+    _path = _getHomeDir() / "Oraculum";
     std::filesystem::create_directories(_path);
 }
 
 void writer::_createFile(const std::string& symbol,const std::string& type){
+    std::cout<< std::string(_path/(symbol+"-"+type))<<"\n";
     _file = std::ofstream(_path/(symbol+"-"+type), std::ios::app);
+
+    if (!_file) {
+        throw std::runtime_error("Cannot open file: " + _path.string());
+    }
 }
 
 const std::filesystem::path writer::_getUserName(){

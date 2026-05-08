@@ -4,7 +4,10 @@ project(Oraculum)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(ORACULUM main/oraculum.cpp)
+add_executable(ORACULUM main/oraculum.cpp
+            writer/writer.cpp)
 
-target_include_directories(ORACULUM PRIVATE /usr/local/include)
+target_include_directories(ORACULUM PRIVATE 
+        ${CMAKE_SOURCE_DIR}
+        /usr/local/include)
 target_link_libraries(ORACULUM PRIVATE /usr/local/lib/libixwebsocket.a)

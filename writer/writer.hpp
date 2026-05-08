@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -7,7 +8,6 @@
 
 class writer {
     private:
-        void _createFile(const std::string& symbol, const std::string& type);
 
         const std::filesystem::path _getUserName();
         const std::filesystem::path _getHomeDir();
@@ -16,5 +16,6 @@ class writer {
         std::ofstream _file;
     public:
         writer();
+        void _createFile(const std::string& symbol, const std::string& type);
 
 };

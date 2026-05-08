@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/ORACULUM.dir/main/oraculum.cpp.o"
   "CMakeFiles/ORACULUM.dir/main/oraculum.cpp.o.d"
+  "CMakeFiles/ORACULUM.dir/writer/writer.cpp.o"
+  "CMakeFiles/ORACULUM.dir/writer/writer.cpp.o.d"
   "ORACULUM"
   "ORACULUM.pdb"
 )
