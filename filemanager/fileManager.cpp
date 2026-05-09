@@ -1,11 +1,17 @@
-#include "writer.hpp"
+#include "filemanager/fileManager.hpp"
 
-writer::writer(){
+fileManager::fileManager(){
     _path = _getHomeDir() / "Oraculum";
-    std::filesystem::create_directories(_path);
+    if (!existsInLocalOraculumDir()){
+        std::filesystem::create_directories(_path/"cache");
+    }
 }
 
-void writer::_createFile(const std::string& symbol,const std::string& type){
+bool fileManager::existsInLocalOraculumDir(){
+    return std::filesystem::exists(_path/"cache");
+}
+
+void fileManager::_createFile(const std::string& symbol,const std::string& type){
     std::cout<< std::string(_path/(symbol+"-"+type))<<"\n";
     _file = std::ofstream(_path/(symbol+"-"+type), std::ios::app);
 
@@ -14,7 +20,7 @@ void writer::_createFile(const std::string& symbol,const std::string& type){
     }
 }
 
-const std::filesystem::path writer::_getUserName(){
+const std::filesystem::path fileManager::_getUserName(){
     #ifdef _WIN32
         const char* user = std::getenv("USERNAME");
     #else
@@ -29,7 +35,7 @@ const std::filesystem::path writer::_getUserName(){
     return std::filesystem::path(user);
 }
 
-const std::filesystem::path writer::_getHomeDir(){
+const std::filesystem::path fileManager::_getHomeDir(){
     #ifdef _WIN32
         const char* homeDir = std::getenv("USERPROFILE");
     #else

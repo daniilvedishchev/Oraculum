@@ -6,7 +6,7 @@
 #include <filesystem>
 
 
-class writer {
+class fileManager {
     private:
 
         const std::filesystem::path _getUserName();
@@ -15,7 +15,10 @@ class writer {
         std::filesystem::path _path;
         std::ofstream _file;
     public:
-        writer();
+        fileManager();
+
         void _createFile(const std::string& symbol, const std::string& type);
+        bool existsInLocalOraculumDir();
+        
 
 };

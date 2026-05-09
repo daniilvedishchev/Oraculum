@@ -4,26 +4,49 @@
 #include <functional>
 #include <unordered_map>
 
+#include "config/config.hpp"
 #include "namespace/namespace.hpp"
 #include "keywords/keywords.hpp"
 #include "providers/providers.hpp"
 
 struct rule {
-    bool mandatory;
+    Oraculum::value mandatory;
     Oraculum::value valuebydefault;
-    std::function<bool(const char* args[],const int argc,size_t idx)> validate;
+    std::function<bool(config& cfg, const char* args[], const int argc, size_t idx)> validate;
 };
 
 inline std::unordered_map<keywords,rule> keywordtorule = {
+    {keywords::_WRITELIVEDATA, rule{
+        true,
+        "None",
+        [](config& cfg,const char* args[],const int argc,size_t idx) -> bool {
+            if (argc > 2){
+                throw std::runtime_error(" '-symbol' , '-type' are required after '-write-live-data'.");
+                return false;
+            }
+            return true;
+        }}
+    },
     {keywords::_PROVIDER, rule{
         false,
         providers::binance,
-        [](const char* args[],const int argc,size_t idx) -> bool {
+        [](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
             if (idx+1 >= argc || std::isdigit(static_cast<unsigned char>(args[idx + 1][0]))){
                 throw std::runtime_error("Provider name not specified, delete '-provider' keyword to use value by default.");
                 return false;
             }
             return providerlookup.find(static_cast<std::string>(args[idx+1])) != providerlookup.end();
+        }
+    }},
+    {keywords::_SYMBOL, rule{
+        true,
+        "None",
+        [](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
+            if (idx+1>=argc){
+                throw std::runtime_error("'-symbol' keyword is used without a trading pair.");
+                return false;
+            }
+            ///////std::string(args[idx+1]);
         }
     }}
 };

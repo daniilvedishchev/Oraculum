@@ -5,7 +5,7 @@ project(Oraculum)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(ORACULUM main/oraculum.cpp
-            writer/writer.cpp)
+            filemanager/fileManager.cpp)
 
 target_include_directories(ORACULUM PRIVATE 
         ${CMAKE_SOURCE_DIR}
