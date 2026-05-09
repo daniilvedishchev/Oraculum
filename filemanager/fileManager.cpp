@@ -2,13 +2,13 @@
 
 fileManager::fileManager(){
     _path = _getHomeDir() / "Oraculum";
-    if (!existsInLocalOraculumDir()){
+    if (!dirExistsInLocalOraculumEnv("cache")){
         std::filesystem::create_directories(_path/"cache");
     }
 }
 
-bool fileManager::existsInLocalOraculumDir(){
-    return std::filesystem::exists(_path/"cache");
+bool fileManager::dirExistsInLocalOraculumEnv(const std::string& directory){
+    return std::filesystem::exists(_path/directory);
 }
 
 void fileManager::_createFile(const std::string& symbol,const std::string& type){

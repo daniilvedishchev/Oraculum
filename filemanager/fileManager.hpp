@@ -18,7 +18,7 @@ class fileManager {
         fileManager();
 
         void _createFile(const std::string& symbol, const std::string& type);
-        bool existsInLocalOraculumDir();
+        bool dirExistsInLocalOraculumEnv(const std::string& directory);
         
 
 };
