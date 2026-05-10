@@ -40,7 +40,7 @@ void CacheService::updateSymbols(providers& provider){
     }
 
     cpr::Response response = _request(provider,providerEndpoint::symbols);
-    file f = _fileManager._createFile("cache/"+providerStr+"/symbols",true);
+    file f = _fileManager.createFile("cache/"+providerStr+"/symbols",true);
     nlohmann::json data = nlohmann::json::parse(response.text);
 
     for (const auto& tradingpair : data["symbols"]){

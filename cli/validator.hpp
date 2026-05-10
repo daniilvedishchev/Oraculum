@@ -8,12 +8,7 @@
 #include "namespace/namespace.hpp"
 #include "keywords/keywords.hpp"
 #include "providers/providers.hpp"
-
-struct rule {
-    Oraculum::value mandatory;
-    Oraculum::value valuebydefault;
-    std::function<bool(config& cfg, const char* args[], const int argc, size_t idx)> validate;
-};
+#include "cli/rules/rules.hpp"
 
 inline std::unordered_map<keywords,rule> keywordtorule = {
     {keywords::_WRITELIVEDATA, rule{

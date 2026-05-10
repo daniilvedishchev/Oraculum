@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(external/cpr)
 add_subdirectory(external/json)
+add_subdirectory(external/IXWebSocket)
 
 add_executable(ORACULUM
     src/app/oraculum.cpp
