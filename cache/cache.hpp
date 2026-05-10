@@ -11,7 +11,7 @@ class cache {
         void _updateCache();
         void _createCache();
 
-        void _request(providers& provider);
+        void _request(providers& provider, std::string& typeURL);
     public:
         cache(providers& provider);
         ~cache();
