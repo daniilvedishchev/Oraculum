@@ -21,7 +21,7 @@ target_include_directories(ORACULUM PRIVATE
 )
 
 target_link_libraries(ORACULUM PRIVATE
-    /usr/local/lib/libixwebsocket.a
+    ixwebsocket::ixwebsocket
     cpr::cpr
     nlohmann_json::nlohmann_json
 )
