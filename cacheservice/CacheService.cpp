@@ -1,9 +1,23 @@
 #include "cacheservice/CacheService.hpp"
 
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
+#include <fstream>
 #include <stdexcept>
+#include <unordered_set>
 
 #include "providers/binance/URLs.hpp"
 #include "filemanager/FileManager.hpp"
+
+namespace {
+std::string toUpper(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+        return static_cast<char>(std::toupper(c));
+    });
+    return value;
+}
+} // namespace
 
 CacheService::CacheService(providers provider ,FileManager& fileManager) : _fileManager(fileManager) {
     (void) provider;
@@ -47,4 +61,43 @@ void CacheService::updateSymbols(providers& provider){
         f.write(tradingpair["symbol"].get<std::string>());
     }
 
+}
+
+std::unordered_set<std::string> CacheService::readSymbols(providers provider) {
+    const auto providerStrIt = providerStrLookup.find(provider);
+    if (providerStrIt == providerStrLookup.end()) {
+        throw std::runtime_error("Unknown provider for symbols cache.");
+    }
+
+    const std::filesystem::path symbolCachePath =
+        _fileManager.envPath() / "cache" / providerStrIt->second / "symbols";
+
+    if (!std::filesystem::exists(symbolCachePath)) {
+        return {};
+    }
+
+    std::ifstream in(symbolCachePath);
+    if (!in) {
+        throw std::runtime_error("Cannot open symbols cache file: " + symbolCachePath.string());
+    }
+
+    std::unordered_set<std::string> symbols;
+    std::string symbol;
+    while (std::getline(in, symbol)) {
+        if (!symbol.empty()) {
+            symbols.insert(symbol);
+        }
+    }
+
+    return symbols;
+}
+
+bool CacheService::isSymbolValidFromCache(providers provider, const std::string& symbol) {
+    const std::unordered_set<std::string> symbols = readSymbols(provider);
+    if (symbols.empty()) {
+        return false;
+    }
+
+    const std::string normalizedSymbol = toUpper(symbol);
+    return symbols.find(normalizedSymbol) != symbols.end();
 }

@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
+#include <unordered_set>
 
 #include "providers/providers.hpp"
 
@@ -22,4 +23,6 @@ class CacheService {
     public:
         explicit CacheService(providers provider,FileManager& fileManager);
         void updateSymbols(providers& provider);
+        std::unordered_set<std::string> readSymbols(providers provider);
+        bool isSymbolValidFromCache(providers provider, const std::string& symbol);
 };

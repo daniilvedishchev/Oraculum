@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "config/config.hpp"
 #include "namespace/namespace.hpp"
@@ -10,7 +11,7 @@
 #include "providers/providers.hpp"
 #include "cli/rules/rules.hpp"
 
-inline std::unordered_map<keywords,rule> keywordtorule = {
+inline std::unordered_map<keywords,rule> makeKeywordToRule(std::unordered_set<std::string>& symbols){
     {keywords::_WRITELIVEDATA, rule{
         true,
         "None",
@@ -20,8 +21,8 @@ inline std::unordered_map<keywords,rule> keywordtorule = {
                 return false;
             }
             return true;
-        }}
-    },
+        }};
+    };
     {keywords::_PROVIDER, rule{
         false,
         providers::binance,
@@ -31,19 +32,22 @@ inline std::unordered_map<keywords,rule> keywordtorule = {
                 return false;
             }
             return providerLookup.find(static_cast<std::string>(args[idx+1])) != providerLookup.end();
-        }
-    }},
+        }};
+    };
     {keywords::_SYMBOL, rule{
         true,
         "None",
-        [](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
+        [symbols](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
             if (idx+1>=argc){
                 throw std::runtime_error("'-symbol' keyword is used without a trading pair.");
                 return false;
             }
-            ///////std::string(args[idx+1]);
-        }
-    }}
+            if (symbols.find(args[idx+1]) != symbols.end()){
+                return true;
+            }
+            return false;
+        }};
+    };
 };
 
 // inline bool validateKeywordValue(const keywords keyword, const Oraculum::value& value) {
