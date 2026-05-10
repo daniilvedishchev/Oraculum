@@ -8,21 +8,24 @@
 
 #include "providers/providers.hpp"
 
+namespace oraculum {
+
 class FileManager;
 
 class CacheService {
-    private:
-        void _updateCache();
-        void _createCache();
+private:
+    FileManager& fileManager_;
 
-        FileManager& _fileManager;
+    cpr::Response request(Provider provider, ProviderEndpoint endpoint);
+    cpr::Response request(Provider provider, const std::string& endpointName);
 
-        cpr::Response _request(providers provider, providerEndpoint endpoint);
-        cpr::Response _request(providers provider, const std::string& endpoint);
+public:
+    explicit CacheService(FileManager& fileManager);
 
-    public:
-        explicit CacheService(providers provider,FileManager& fileManager);
-        void updateSymbols(providers& provider);
-        std::unordered_set<std::string> readSymbols(providers provider);
-        bool isSymbolValidFromCache(providers provider, const std::string& symbol);
+    void updateSymbols(Provider provider);
+    std::unordered_set<std::string> readSymbols(Provider provider);
+    std::unordered_set<std::string> loadOrUpdateSymbols(Provider provider);
+    bool isSymbolValidFromCache(Provider provider, const std::string& symbol);
 };
+
+} // namespace oraculum

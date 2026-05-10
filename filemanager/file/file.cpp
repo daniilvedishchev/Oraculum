@@ -1,5 +1,9 @@
 #include "filemanager/file/file.hpp"
 
-void file::write(const std::string& txt){
-    file<<txt<<"\n";
+namespace oraculum {
+
+void FileHandle::writeLine(const std::string& text) {
+    stream << text << "\n";
 }
+
+} // namespace oraculum

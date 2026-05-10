@@ -1,60 +1,69 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
-#include <functional>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "config/config.hpp"
-#include "namespace/namespace.hpp"
 #include "keywords/keywords.hpp"
 #include "providers/providers.hpp"
-#include "cli/rules/rules.hpp"
+#include "utils/utils.hpp"
 
-inline std::unordered_map<keywords,rule> makeKeywordToRule(std::unordered_set<std::string>& symbols){
-    {keywords::_WRITELIVEDATA, rule{
-        true,
-        "None",
-        [](config& cfg,const char* args[],const int argc,size_t idx) -> bool {
-            if (argc > 2){
-                throw std::runtime_error(" '-symbol' , '-type' are required after '-write-live-data'.");
-                return false;
-            }
-            return true;
-        }};
-    };
-    {keywords::_PROVIDER, rule{
-        false,
-        providers::binance,
-        [](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
-            if (idx+1 >= argc || std::isdigit(static_cast<unsigned char>(args[idx + 1][0]))){
-                throw std::runtime_error("Provider name not specified, delete '-provider' keyword to use value by default.");
-                return false;
-            }
-            return providerLookup.find(static_cast<std::string>(args[idx+1])) != providerLookup.end();
-        }};
-    };
-    {keywords::_SYMBOL, rule{
-        true,
-        "None",
-        [symbols](config& cfg, const char* args[],const int argc,size_t idx) -> bool {
-            if (idx+1>=argc){
-                throw std::runtime_error("'-symbol' keyword is used without a trading pair.");
-                return false;
-            }
-            if (symbols.find(args[idx+1]) != symbols.end()){
-                return true;
-            }
-            return false;
-        }};
-    };
-};
+inline Config parseCliArgs(int argc, char* argv[]) {
+    Config cfg;
 
-// inline bool validateKeywordValue(const keywords keyword, const Oraculum::value& value) {
-//     const auto it = keywordtorule.find(keyword);
-//     if (it == keywordtorule.end()) {
-//         return false;
-//     }
+    for (int i = 1; i < argc; ++i) {
+        const std::string argument = argv[i];
+        const auto keywordIt = kKeywordLookup.find(argument);
+        if (keywordIt == kKeywordLookup.end()) {
+            throw std::runtime_error("Unknown argument: " + argument);
+        }
 
-//     return it->second.validate(value);
-// }
+        switch (keywordIt->second) {
+            case Keyword::WriteLiveData:
+                cfg.writeLiveData = true;
+                break;
+            case Keyword::Provider:
+                if (i + 1 >= argc) {
+                    throw std::runtime_error("Missing value after '-provider'.");
+                }
+                cfg.provider = argv[++i];
+                break;
+            case Keyword::Symbol:
+                if (i + 1 >= argc) {
+                    throw std::runtime_error("Missing value after '-symbol'.");
+                }
+                cfg.symbol = argv[++i];
+                break;
+            case Keyword::Type:
+                if (i + 1 >= argc) {
+                    throw std::runtime_error("Missing value after '-type'.");
+                }
+                cfg.type = argv[++i];
+                break;
+        }
+    }
+
+    return cfg;
+}
+
+inline oraculum::Provider resolveProvider(const std::string& providerName) {
+    const std::string normalizedProvider = toLower(providerName);
+    const auto providerIt = oraculum::kProviderLookup.find(normalizedProvider);
+    if (providerIt == oraculum::kProviderLookup.end()) {
+        throw std::runtime_error("Unsupported provider: " + providerName);
+    }
+
+    return providerIt->second;
+}
+
+inline void validateSymbolWithCache(const std::string& symbol, const std::unordered_set<std::string>& symbols) {
+    if (symbols.empty()) {
+        throw std::runtime_error("Symbols cache is empty. Cannot validate symbol.");
+    }
+
+    const std::string normalizedSymbol = toUpper(symbol);
+    if (symbols.find(normalizedSymbol) == symbols.end()) {
+        throw std::runtime_error("Unknown symbol for selected provider: " + symbol);
+    }
+}

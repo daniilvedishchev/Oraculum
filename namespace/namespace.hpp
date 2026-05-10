@@ -5,6 +5,8 @@
 
 #include "providers/providers.hpp"
 
-namespace Oraculum {
-    using value = std::variant<bool, double, int, std::string, providers>;
+namespace oraculum {
+
+using RuleValue = std::variant<bool, double, int, std::string, Provider>;
+
 }

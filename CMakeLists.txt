@@ -11,14 +11,13 @@ add_subdirectory(external/IXWebSocket)
 
 add_executable(ORACULUM
     src/app/oraculum.cpp
-    filemanager/FileManager.cpp
+    filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
     filemanager/file/file.cpp
 )
 
 target_include_directories(ORACULUM PRIVATE 
     ${CMAKE_SOURCE_DIR}
-    /usr/local/include
 )
 
 target_link_libraries(ORACULUM PRIVATE

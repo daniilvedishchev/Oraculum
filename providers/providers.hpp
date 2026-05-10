@@ -4,41 +4,45 @@
 #include <string>
 #include <unordered_map>
 
-enum class providers {
-    binance
+namespace oraculum {
+
+enum class Provider {
+    Binance
 };
 
-enum class providerEndpoint {
-    api,
-    websocket,
-    symbols
+enum class ProviderEndpoint {
+    Api,
+    WebSocket,
+    Symbols
 };
 
-struct providerUrls {
+struct ProviderUrls {
     std::string api;
     std::string websocket;
     std::string symbols;
 };
 
-inline const std::unordered_map<std::string, providers> providerLookup = {
-    {"binance", providers::binance}
+inline const std::unordered_map<std::string, Provider> kProviderLookup = {
+    {"binance", Provider::Binance}
 };
 
-inline const std::unordered_map<providers, std::string> providerStrLookup = {
-    {providers::binance, "binance"}
+inline const std::unordered_map<Provider, std::string> kProviderNameByProvider = {
+    {Provider::Binance, "binance"}
 };
 
-inline const std::unordered_map<std::string, providerEndpoint> endpointLookup = {
-    {"api", providerEndpoint::api},
-    {"websocket", providerEndpoint::websocket},
-    {"symbols", providerEndpoint::symbols}
+inline const std::unordered_map<std::string, ProviderEndpoint> kEndpointLookup = {
+    {"api", ProviderEndpoint::Api},
+    {"websocket", ProviderEndpoint::WebSocket},
+    {"symbols", ProviderEndpoint::Symbols}
 };
 
-inline providerEndpoint parseEndpoint(const std::string& endpointName) {
-    auto it = endpointLookup.find(endpointName);
-    if (it == endpointLookup.end()) {
+inline ProviderEndpoint parseProviderEndpoint(const std::string& endpointName) {
+    auto it = kEndpointLookup.find(endpointName);
+    if (it == kEndpointLookup.end()) {
         throw std::runtime_error("Unsupported endpoint type: " + endpointName);
     }
 
     return it->second;
 }
+
+} // namespace oraculum

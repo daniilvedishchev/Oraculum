@@ -1,13 +1,32 @@
+#include <exception>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 
-#include "filemanager/FileManager.hpp"
 #include "cacheservice/CacheService.hpp"
+#include "cli/validator.hpp"
+#include "filemanager/fileManager.hpp"
 
-int main(int argc,char* argv[]) {
-    FileManager fm = FileManager();
-    providers provider = providers::binance;
-    CacheService cache = CacheService(provider,fm);
-    cache.updateSymbols(provider);
-    return 0;
+int main(int argc, char* argv[]) {
+    try {
+        const Config cfg = parseCliArgs(argc, argv);
+
+        if (!cfg.writeLiveData) {
+            return 0;
+        }
+
+        const oraculum::Provider provider = resolveProvider(cfg.provider);
+
+        oraculum::FileManager fileManager;
+        oraculum::CacheService cacheService(fileManager);
+        const std::unordered_set<std::string> symbols = cacheService.loadOrUpdateSymbols(provider);
+
+        validateSymbolWithCache(cfg.symbol, symbols);
+        fileManager.createFile(cfg.symbol, cfg.type);
+
+        return 0;
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
 }

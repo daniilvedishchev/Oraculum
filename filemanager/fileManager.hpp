@@ -1,26 +1,26 @@
 #pragma once
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <fstream>
 #include <filesystem>
+#include <string>
 
 #include "filemanager/file/file.hpp"
 
+namespace oraculum {
+
 class FileManager {
-    private:
+private:
+    std::filesystem::path getHomeDir();
 
-        const std::filesystem::path _getUserName();
-        const std::filesystem::path _getHomeDir();
+    std::filesystem::path path_;
 
-        std::filesystem::path _path;
-    public:
-        FileManager();
+public:
+    FileManager();
 
-        file createFile(const std::string& symbol, const std::string& type, bool overwrite = false);
-        file createFile(const std::string& name, bool overwrite = false);
+    FileHandle createFile(const std::string& symbol, const std::string& type, bool overwrite = false);
+    FileHandle createFile(const std::string& name, bool overwrite = false);
 
-        std::filesystem::path envPath();
+    std::filesystem::path environmentPath() const;
 
-        bool dirExistsInLocalOraculumEnv(const std::string& directory);
+    bool directoryExistsInOraculumEnv(const std::string& directory) const;
 };
+
+} // namespace oraculum

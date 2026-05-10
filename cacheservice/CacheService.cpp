@@ -1,34 +1,26 @@
 #include "cacheservice/CacheService.hpp"
 
-#include <algorithm>
-#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <unordered_set>
 
 #include "providers/binance/URLs.hpp"
-#include "filemanager/FileManager.hpp"
+#include "filemanager/fileManager.hpp"
 
-namespace {
-std::string toUpper(std::string value) {
-    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
-        return static_cast<char>(std::toupper(c));
-    });
-    return value;
-}
-} // namespace
+#include "utils/utils.hpp"
 
-CacheService::CacheService(providers provider ,FileManager& fileManager) : _fileManager(fileManager) {
-    (void) provider;
+namespace oraculum {
+
+CacheService::CacheService(FileManager& fileManager) : fileManager_(fileManager) {
 }
 
-cpr::Response CacheService::_request(providers provider, const std::string& endpoint) {
-    return _request(provider, parseEndpoint(endpoint));
+cpr::Response CacheService::request(Provider provider, const std::string& endpointName) {
+    return request(provider, parseProviderEndpoint(endpointName));
 }
 
-cpr::Response CacheService::_request(providers provider, providerEndpoint endpoint) {
-    if (endpoint == providerEndpoint::websocket) {
+cpr::Response CacheService::request(Provider provider, ProviderEndpoint endpoint) {
+    if (endpoint == ProviderEndpoint::WebSocket) {
         throw std::runtime_error("WebSocket URL cannot be requested via HTTP GET. Use socket client.");
     }
 
@@ -44,33 +36,34 @@ cpr::Response CacheService::_request(providers provider, providerEndpoint endpoi
     return response;
 }
 
+void CacheService::updateSymbols(Provider provider) {
+    const auto providerNameIt = kProviderNameByProvider.find(provider);
+    if (providerNameIt == kProviderNameByProvider.end()) {
+        throw std::runtime_error("Unknown provider for symbols update.");
+    }
+    const std::string& providerName = providerNameIt->second;
 
-
-void CacheService::updateSymbols(providers& provider){
-    std::string providerStr = providerStrLookup.find(provider)->second;
-
-    if (!_fileManager.dirExistsInLocalOraculumEnv("cache/"+providerStr)){
-       std::filesystem::create_directories(_fileManager.envPath()/"cache"/providerStr);
+    if (!fileManager_.directoryExistsInOraculumEnv("cache/" + providerName)) {
+        std::filesystem::create_directories(fileManager_.environmentPath() / "cache" / providerName);
     }
 
-    cpr::Response response = _request(provider,providerEndpoint::symbols);
-    file f = _fileManager.createFile("cache/"+providerStr+"/symbols",true);
-    nlohmann::json data = nlohmann::json::parse(response.text);
+    const cpr::Response response = request(provider, ProviderEndpoint::Symbols);
+    FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbols", true);
+    const nlohmann::json data = nlohmann::json::parse(response.text);
 
-    for (const auto& tradingpair : data["symbols"]){
-        f.write(tradingpair["symbol"].get<std::string>());
+    for (const auto& tradingPair : data["symbols"]) {
+        fileHandle.writeLine(tradingPair["symbol"].get<std::string>());
     }
-
 }
 
-std::unordered_set<std::string> CacheService::readSymbols(providers provider) {
-    const auto providerStrIt = providerStrLookup.find(provider);
-    if (providerStrIt == providerStrLookup.end()) {
+std::unordered_set<std::string> CacheService::readSymbols(Provider provider) {
+    const auto providerNameIt = kProviderNameByProvider.find(provider);
+    if (providerNameIt == kProviderNameByProvider.end()) {
         throw std::runtime_error("Unknown provider for symbols cache.");
     }
 
     const std::filesystem::path symbolCachePath =
-        _fileManager.envPath() / "cache" / providerStrIt->second / "symbols";
+        fileManager_.environmentPath() / "cache" / providerNameIt->second / "symbols";
 
     if (!std::filesystem::exists(symbolCachePath)) {
         return {};
@@ -92,8 +85,18 @@ std::unordered_set<std::string> CacheService::readSymbols(providers provider) {
     return symbols;
 }
 
-bool CacheService::isSymbolValidFromCache(providers provider, const std::string& symbol) {
-    const std::unordered_set<std::string> symbols = readSymbols(provider);
+std::unordered_set<std::string> CacheService::loadOrUpdateSymbols(Provider provider) {
+    std::unordered_set<std::string> symbols = readSymbols(provider);
+    if (!symbols.empty()) {
+        return symbols;
+    }
+
+    updateSymbols(provider);
+    return readSymbols(provider);
+}
+
+bool CacheService::isSymbolValidFromCache(Provider provider, const std::string& symbol) {
+    const std::unordered_set<std::string> symbols = loadOrUpdateSymbols(provider);
     if (symbols.empty()) {
         return false;
     }
@@ -101,3 +104,5 @@ bool CacheService::isSymbolValidFromCache(providers provider, const std::string&
     const std::string normalizedSymbol = toUpper(symbol);
     return symbols.find(normalizedSymbol) != symbols.end();
 }
+
+} // namespace oraculum

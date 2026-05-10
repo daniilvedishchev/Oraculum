@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
 
-struct config {
-    std::string provider;
+struct Config {
+    std::string provider = "binance";
     std::string symbol;
     std::string type;
+    bool writeLiveData = false;
 };

@@ -2,16 +2,16 @@
 #include <unordered_map>
 #include <string>
 
-enum class keywords {
-    _WRITELIVEDATA,
-    _PROVIDER,
-    _SYMBOL,
-    _TYPE
+enum class Keyword {
+    WriteLiveData,
+    Provider,
+    Symbol,
+    Type
 };
 
-inline std::unordered_map<std::string, keywords> keywordlookup = {
-    {"-write-live-data",keywords::_WRITELIVEDATA},
-    {"-provider", keywords::_PROVIDER},
-    {"-symbol", keywords::_SYMBOL},
-    {"-type", keywords::_TYPE}
+inline const std::unordered_map<std::string, Keyword> kKeywordLookup = {
+    {"-write-live-data", Keyword::WriteLiveData},
+    {"-provider", Keyword::Provider},
+    {"-symbol", Keyword::Symbol},
+    {"-type", Keyword::Type}
 };

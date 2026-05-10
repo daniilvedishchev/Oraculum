@@ -1,13 +1,15 @@
 #pragma once
 
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <string>
 
-struct file {
-    std::ofstream file;
+namespace oraculum {
+
+struct FileHandle {
+    std::ofstream stream;
     std::filesystem::path path;
-    void write(const std::string& txt);
+    void writeLine(const std::string& text);
 };
+
+} // namespace oraculum
