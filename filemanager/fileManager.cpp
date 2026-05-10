@@ -1,26 +1,58 @@
-#include "filemanager/fileManager.hpp"
+#include "filemanager/FileManager.hpp"
 
-fileManager::fileManager(){
+FileManager::FileManager(){
     _path = _getHomeDir() / "Oraculum";
     if (!dirExistsInLocalOraculumEnv("cache")){
         std::filesystem::create_directories(_path/"cache");
     }
 }
 
-bool fileManager::dirExistsInLocalOraculumEnv(const std::string& directory){
+std::filesystem::path FileManager::envPath(){
+    return _path;
+};
+
+bool FileManager::dirExistsInLocalOraculumEnv(const std::string& directory){
     return std::filesystem::exists(_path/directory);
 }
 
-void fileManager::_createFile(const std::string& symbol,const std::string& type){
-    std::cout<< std::string(_path/(symbol+"-"+type))<<"\n";
-    _file = std::ofstream(_path/(symbol+"-"+type), std::ios::app);
+file FileManager::createFile(const std::string& name, bool overwrite){
+    std::ios::openmode method;
+    if (!overwrite) {
+        method = std::ios::app;
+    } else method = std::ios::out;
 
-    if (!_file) {
-        throw std::runtime_error("Cannot open file: " + _path.string());
+    std::filesystem::path path = _path/name;
+
+    std::ofstream fileobj = std::ofstream(path, method);
+
+    if (!fileobj) {
+        throw std::runtime_error("Cannot open file: " + path.string());
     }
+
+    file f = file{.file=std::move(fileobj), .path=path};
+
+    return f;
 }
 
-const std::filesystem::path fileManager::_getUserName(){
+file FileManager::createFile(const std::string& symbol, const std::string& type, bool overwrite){
+    std::ios::openmode method;
+    if (!overwrite) {
+        method = std::ios::app;
+    } else method = std::ios::out;
+
+    std::filesystem::path path = _path/(symbol+"-"+type);
+    std::ofstream fileobj = std::ofstream(path, method);
+
+    if (!fileobj) {
+        throw std::runtime_error("Cannot open file: " + path.string());
+    }
+
+    file f = file{.file=std::move(fileobj), .path=path};
+
+    return f;
+}
+
+const std::filesystem::path FileManager::_getUserName(){
     #ifdef _WIN32
         const char* user = std::getenv("USERNAME");
     #else
@@ -35,7 +67,7 @@ const std::filesystem::path fileManager::_getUserName(){
     return std::filesystem::path(user);
 }
 
-const std::filesystem::path fileManager::_getHomeDir(){
+const std::filesystem::path FileManager::_getHomeDir(){
     #ifdef _WIN32
         const char* homeDir = std::getenv("USERPROFILE");
     #else

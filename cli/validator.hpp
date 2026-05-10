@@ -35,7 +35,7 @@ inline std::unordered_map<keywords,rule> keywordtorule = {
                 throw std::runtime_error("Provider name not specified, delete '-provider' keyword to use value by default.");
                 return false;
             }
-            return providerlookup.find(static_cast<std::string>(args[idx+1])) != providerlookup.end();
+            return providerLookup.find(static_cast<std::string>(args[idx+1])) != providerLookup.end();
         }
     }},
     {keywords::_SYMBOL, rule{
