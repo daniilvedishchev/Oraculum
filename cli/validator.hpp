@@ -9,44 +9,6 @@
 #include "providers/providers.hpp"
 #include "utils/utils.hpp"
 
-inline Config parseCliArgs(int argc, char* argv[]) {
-    Config cfg;
-
-    for (int i = 1; i < argc; ++i) {
-        const std::string argument = argv[i];
-        const auto keywordIt = kKeywordLookup.find(argument);
-        if (keywordIt == kKeywordLookup.end()) {
-            throw std::runtime_error("Unknown argument: " + argument);
-        }
-
-        switch (keywordIt->second) {
-            case Keyword::WriteLiveData:
-                cfg.writeLiveData = true;
-                break;
-            case Keyword::Provider:
-                if (i + 1 >= argc) {
-                    throw std::runtime_error("Missing value after '-provider'.");
-                }
-                cfg.provider = argv[++i];
-                break;
-            case Keyword::Symbol:
-                if (i + 1 >= argc) {
-                    throw std::runtime_error("Missing value after '-symbol'.");
-                }
-                cfg.symbol = argv[++i];
-                break;
-            case Keyword::Type:
-                if (i + 1 >= argc) {
-                    throw std::runtime_error("Missing value after '-type'.");
-                }
-                cfg.type = argv[++i];
-                break;
-        }
-    }
-
-    return cfg;
-}
-
 inline oraculum::Provider resolveProvider(const std::string& providerName) {
     const std::string normalizedProvider = toLower(providerName);
     const auto providerIt = oraculum::kProviderLookup.find(normalizedProvider);
