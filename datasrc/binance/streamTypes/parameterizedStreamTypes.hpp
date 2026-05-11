@@ -1,5 +1,6 @@
+#pragma once
 namespace oraculum {
-    enum class parameterizedStreamTypes {
+    enum class parameterizedStreamType {
         kline,
         rollingTicker,
         partialDepth,

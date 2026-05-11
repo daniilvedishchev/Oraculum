@@ -16,12 +16,6 @@ enum class ProviderEndpoint {
     Symbols
 };
 
-struct ProviderUrls {
-    std::string api;
-    std::string websocket;
-    std::string symbols;
-};
-
 inline const std::unordered_map<std::string, Provider> kProviderLookup = {
     {"binance", Provider::Binance}
 };
