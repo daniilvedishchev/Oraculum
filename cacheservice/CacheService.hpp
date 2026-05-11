@@ -16,7 +16,7 @@ class CacheService {
 private:
     FileManager& fileManager_;
 
-    cpr::Response request(Provider provider, ProviderEndpoint endpoint);
+    cpr::Response request(Provider provider, Connection connection);
     cpr::Response request(Provider provider, const std::string& endpointName);
 
 public:

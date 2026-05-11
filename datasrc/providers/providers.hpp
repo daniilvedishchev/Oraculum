@@ -9,4 +9,5 @@ namespace oraculum {
     };
     extern const std::unordered_map<Provider,ProviderBase> kProviderToUrls;
     extern const std::unordered_map<std::string,Provider> kStringToProvider;
+    extern const std::unordered_map<Provider,std::string> kProviderToString
 }

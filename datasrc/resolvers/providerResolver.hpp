@@ -6,4 +6,5 @@
 
 namespace oraculum {
     Provider resolveProviderOrThrow(const std::string& providerName);
+    const std::string& resolveProviderUrlOrThrow(Provider provider, Connection connectionType);
 }

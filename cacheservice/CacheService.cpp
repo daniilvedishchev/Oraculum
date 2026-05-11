@@ -5,8 +5,9 @@
 #include <stdexcept>
 #include <unordered_set>
 
-#include "providers/binance/URLs.hpp"
 #include "filemanager/fileManager.hpp"
+#include "datasrc/providers/providers.hpp"
+#include "datasrc/resolvers/providerResolver.hpp"
 
 #include "utils/utils.hpp"
 
@@ -15,16 +16,12 @@ namespace oraculum {
 CacheService::CacheService(FileManager& fileManager) : fileManager_(fileManager) {
 }
 
-cpr::Response CacheService::request(Provider provider, const std::string& endpointName) {
-    return request(provider, parseProviderEndpoint(endpointName));
-}
-
-cpr::Response CacheService::request(Provider provider, ProviderEndpoint endpoint) {
-    if (endpoint == ProviderEndpoint::WebSocket) {
+cpr::Response CacheService::request(Provider provider, Connection connectionType) {
+    if (connectionType == Connection::WebSocket) {
         throw std::runtime_error("WebSocket URL cannot be requested via HTTP GET. Use socket client.");
     }
 
-    const std::string& url = resolveProviderUrl(provider, endpoint);
+    const std::string& url = resolveProviderUrlOrThrow(provider,connectionType);
     const auto response = cpr::Get(cpr::Url{url});
 
     if (response.status_code != 200) {
@@ -37,8 +34,8 @@ cpr::Response CacheService::request(Provider provider, ProviderEndpoint endpoint
 }
 
 void CacheService::updateSymbols(Provider provider) {
-    const auto providerNameIt = kProviderNameByProvider.find(provider);
-    if (providerNameIt == kProviderNameByProvider.end()) {
+    const auto providerNameIt = kProviderToString.find(provider);
+    if (providerNameIt == kProviderToString.end()) {
         throw std::runtime_error("Unknown provider for symbols update.");
     }
     const std::string& providerName = providerNameIt->second;
@@ -47,7 +44,7 @@ void CacheService::updateSymbols(Provider provider) {
         std::filesystem::create_directories(fileManager_.environmentPath() / "cache" / providerName);
     }
 
-    const cpr::Response response = request(provider, ProviderEndpoint::Symbols);
+    const cpr::Response response = request(provider, Connection::Symbols);
     FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbols", true);
     const nlohmann::json data = nlohmann::json::parse(response.text);
 
@@ -57,8 +54,8 @@ void CacheService::updateSymbols(Provider provider) {
 }
 
 std::unordered_set<std::string> CacheService::readSymbols(Provider provider) {
-    const auto providerNameIt = kProviderNameByProvider.find(provider);
-    if (providerNameIt == kProviderNameByProvider.end()) {
+    const auto providerNameIt = kProviderToString.find(provider);
+    if (providerNameIt == kProviderToString.end()) {
         throw std::runtime_error("Unknown provider for symbols cache.");
     }
 
