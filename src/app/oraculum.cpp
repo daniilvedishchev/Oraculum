@@ -6,10 +6,12 @@
 #include "cacheservice/CacheService.hpp"
 #include "cli/validator.hpp"
 #include "filemanager/fileManager.hpp"
+#include "cli/cli.hpp"
 
 int main(int argc, char* argv[]) {
     try {
-        const Config cfg = parseCliArgs(argc, argv);
+        CLI cli = CLI(argc,argv);
+        const Config cfg = cli.parseCliArgs();
 
         if (!cfg.writeLiveData) {
             return 0;

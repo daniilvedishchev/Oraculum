@@ -14,6 +14,7 @@ add_executable(ORACULUM
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
     filemanager/file/file.cpp
+    cli/cli.cpp
 )
 
 target_include_directories(ORACULUM PRIVATE 

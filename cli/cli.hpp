@@ -4,10 +4,10 @@
 #include "keywords/keywords.hpp"
 
 class CLI {
-private:
-    int cliSize_;
-    char** cliArgs_;
-public:
-    CLI(int argc, char* argv[]);
-    Config parseCliArgs() const;
+    private:
+        int cliSize_;
+        char** cliArgs_;
+    public:
+        CLI(int argc, char* argv[]);
+        Config parseCliArgs() const;
 };

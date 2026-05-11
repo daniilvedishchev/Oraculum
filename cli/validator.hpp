@@ -9,13 +9,14 @@
 #include "providers/providers.hpp"
 #include "utils/utils.hpp"
 
+inline std::unordered_set<Keyword> requiredKeywords = {Keyword::Symbol,Keyword::Type,Keyword::Provider};
+
 inline oraculum::Provider resolveProvider(const std::string& providerName) {
     const std::string normalizedProvider = toLower(providerName);
     const auto providerIt = oraculum::kProviderLookup.find(normalizedProvider);
     if (providerIt == oraculum::kProviderLookup.end()) {
         throw std::runtime_error("Unsupported provider: " + providerName);
     }
-
     return providerIt->second;
 }
 

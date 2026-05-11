@@ -8,6 +8,7 @@ Config CLI::parseCliArgs() const {
     for (int i = 1; i < cliSize_; ++i) {
         const std::string argument = cliArgs_[i];
         const auto keywordIt = kKeywordLookup.find(argument);
+        
         if (keywordIt == kKeywordLookup.end()) {
             throw std::runtime_error("Unknown argument: " + argument);
         }
