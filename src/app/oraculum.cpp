@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
         if (!cfg.writeLiveData) {
             return 0;
         }
-
+        // Make it as an Internal step!!!
         const oraculum::Provider provider = resolveProvider(cfg.provider);
 
         oraculum::FileManager fileManager;
