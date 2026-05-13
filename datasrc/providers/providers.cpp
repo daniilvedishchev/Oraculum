@@ -1,9 +1,9 @@
 #include "datasrc/providers/providers.hpp"
-#include "datasrc/binance/urls/binanceUrls.hpp"
+#include "datasrc/binance/urls/binanceBaseUrls.hpp"
 
 namespace oraculum {
     const std::unordered_map<Provider,ProviderBase> kProviderToUrls = {
-        {Provider::Binance, kBinanceUrls}
+        {Provider::Binance, kBinanceBaseUrls}
     };
     const std::unordered_map<std::string,Provider> kStringToProvider = {
         {"binance", Provider::Binance}

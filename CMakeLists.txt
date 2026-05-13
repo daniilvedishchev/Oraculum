@@ -13,6 +13,8 @@ add_executable(ORACULUM
     src/app/oraculum.cpp
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
+    datasrc/providers/providers.cpp
+    datasrc/resolvers/providerResolver.cpp
     filemanager/file/file.cpp
     cli/cli.cpp
 )

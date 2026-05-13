@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "providers/providers.hpp"
+#include "datasrc/providers/providers.hpp"
 
 namespace oraculum {
 
@@ -17,7 +17,6 @@ private:
     FileManager& fileManager_;
 
     cpr::Response request(Provider provider, Connection connection);
-    cpr::Response request(Provider provider, const std::string& endpointName);
 
 public:
     explicit CacheService(FileManager& fileManager);
