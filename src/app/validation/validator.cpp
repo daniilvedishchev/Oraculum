@@ -1,4 +1,5 @@
 #include "src/app/validation/validator.hpp"
+#include "cacheservice/CacheService.cpp"
 
 namespace oraculum {
     Validator::Validator(Config& cfg,CacheService& cache) : cfg_(cfg), cache_(cache){}
@@ -26,6 +27,18 @@ namespace oraculum {
         const auto streamType = kStreamTypeLookup.find(normalizedType);
         if (streamType == kStreamTypeLookup.end()){
             throw std::runtime_error("Please, choose a right stream type.");
+        }
+    }
+
+    void Validator::validateTimeFrameOrThrow_(){
+        if (intervals.find(cfg_.tf) == intervals.end()){
+            throw std::runtime_error("Incorrect timeframe.");
+        }
+    }
+
+    void Validator::validateTimeFrameOrThrow_(){
+        if (intervals.find(cfg_.tf) == intervals.end()){
+            throw std::runtime_error("Incorrect timeframe.");
         }
     }
 

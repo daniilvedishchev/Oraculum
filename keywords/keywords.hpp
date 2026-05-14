@@ -1,13 +1,15 @@
 #pragma once
 #include <unordered_map>
 #include <string>
-namespace Oraculum {
+namespace oraculum {
     enum class Keyword {
         WriteLiveData,
         Provider,
         Symbol,
         Type,
-        Depth
+        Depth,
+        Speed,
+        TimeFrame
     };
 
     inline const std::unordered_map<std::string, Keyword> kKeywordLookup = {
@@ -15,6 +17,8 @@ namespace Oraculum {
         {"-provider", Keyword::Provider},
         {"-symbol", Keyword::Symbol},
         {"-type", Keyword::Type},
-        {"-d", Keyword::Depth}
+        {"-d", Keyword::Depth},
+        {"-s", Keyword::Speed},
+        {"-tf", Keyword::TimeFrame}
     };
 }
