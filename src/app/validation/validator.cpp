@@ -23,7 +23,7 @@ namespace oraculum {
 
     void Validator::validateStreamTypeOrThrow_(const std::string& type){
         const std::string normalizedType = toLower(type);
-        auto streamType = kStreamTypeLookup.find(normalizedType);
+        const auto streamType = kStreamTypeLookup.find(normalizedType);
         if (streamType == kStreamTypeLookup.end()){
             throw std::runtime_error("Please, choose a right stream type.");
         }

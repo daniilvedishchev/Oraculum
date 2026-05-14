@@ -1,7 +1,8 @@
 #include "connector/connector.hpp"
+#include "datasrc/providers/providers.hpp"
 
 namespace oraculum {
-    cpr::Response Connector::request(Provider provider, Connection connectionType) {
+    cpr::Response Connector::request(Provider provider, Connection connectionType, Endpoint) {
         if (connectionType == Connection::WebSocket) {
             throw std::runtime_error("WebSocket URL cannot be requested via HTTP GET. Use socket client.");
         }
@@ -14,7 +15,7 @@ namespace oraculum {
                 "Request failed. Status: " + std::to_string(response.status_code) + " URL: " + url
             );
         }
-
+        
         return response;
     }
 }

@@ -10,6 +10,7 @@
 #include "datasrc/resolvers/providerResolver.hpp"
 #include "src/app/validation/requiredFields.hpp"
 #include "cacheservice/CacheService.hpp"
+#include "datasrc/binance/streamTypes/allStreamTypes.hpp"
 
 namespace oraculum {
     class Validator {
