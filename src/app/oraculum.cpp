@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
         }
         fileManager.createFile(cfg.symbol, cfg.type);
 
+        
+
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

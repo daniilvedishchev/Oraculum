@@ -4,13 +4,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <unordered_set>
-
-#include "filemanager/fileManager.hpp"
-#include "datasrc/providers/providers.hpp"
-#include "datasrc/resolvers/providerResolver.hpp"
-
-#include "utils/utils.hpp"
-
 namespace oraculum {
 
 CacheService::CacheService(FileManager& fileManager) : fileManager_(fileManager) {

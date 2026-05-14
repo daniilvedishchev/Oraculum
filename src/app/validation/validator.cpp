@@ -1,7 +1,8 @@
 #include "src/app/validation/validator.hpp"
 
 namespace oraculum {
-    void validator::validateSymbolFromCacheOrThrow_(const std::string& symbol, const std::unordered_set<std::string>& symbols) {
+    Validator::Validator(Config& cfg,CacheService& cache) : cfg_(cfg), cache_(cache){}
+    void Validator::validateSymbolFromCacheOrThrow_(const std::string& symbol, const std::unordered_set<std::string>& symbols) {
         if (symbols.empty()) {
             throw std::runtime_error("Symbols cache is empty. Cannot validate symbol.");
         }
@@ -12,7 +13,7 @@ namespace oraculum {
         }
     }
 
-    void validator::validateProviderOrThrow_(const std::string& provider){
+    void Validator::validateProviderOrThrow_(const std::string& provider){
         const std::string normalizedProvider = toLower(provider);
         const auto providerIt = kStringToProvider.find(normalizedProvider);
         if (providerIt == kStringToProvider.end()) {
@@ -20,11 +21,18 @@ namespace oraculum {
         }
     }
 
-    void validator::validateStreamTypeOrThrow_(const std::string& type){
+    void Validator::validateStreamTypeOrThrow_(const std::string& type){
         const std::string normalizedType = toLower(type);
         auto streamType = kStreamTypeLookup.find(normalizedType);
         if (streamType == kStreamTypeLookup.end()){
             throw std::runtime_error("Please, choose a right stream type.");
         }
+    }
+
+    void Validator::validate(){
+        validateProviderOrThrow_(cfg_.provider);
+        validateStreamTypeOrThrow_(cfg_.type);
+        std::unordered_set<std::string> symbols = cache_.loadOrUpdateSymbols(resolveProviderOrThrow(cfg_.provider));
+        validateSymbolFromCacheOrThrow_(cfg_.symbol,symbols);
     }
 }

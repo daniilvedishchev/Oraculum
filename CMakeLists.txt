@@ -10,13 +10,16 @@ add_subdirectory(external/json)
 add_subdirectory(external/IXWebSocket)
 
 add_executable(ORACULUM
-    src/app/oraculum.cpp
+    src/app/main/oraculum.cpp
+    src/app/validation/validator.cpp
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
     datasrc/providers/providers.cpp
     datasrc/resolvers/providerResolver.cpp
     filemanager/file/file.cpp
     cli/cli.cpp
+    socket/oraculumSocket/oraculumSocket.cpp
+    socket/callbacks/callback.cpp
 )
 
 target_include_directories(ORACULUM PRIVATE 

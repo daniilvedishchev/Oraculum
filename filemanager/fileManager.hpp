@@ -7,20 +7,18 @@
 namespace oraculum {
 
 class FileManager {
-private:
-    std::filesystem::path getHomeDir();
+    private:
+        std::filesystem::path getHomeDir();
+        std::filesystem::path path_;
+    public:
+        FileManager();
 
-    std::filesystem::path path_;
+        FileHandle createFile(const std::string& symbol, const std::string& type, bool overwrite = false);
+        FileHandle createFile(const std::string& name, bool overwrite = false);
 
-public:
-    FileManager();
+        std::filesystem::path environmentPath() const;
 
-    FileHandle createFile(const std::string& symbol, const std::string& type, bool overwrite = false);
-    FileHandle createFile(const std::string& name, bool overwrite = false);
-
-    std::filesystem::path environmentPath() const;
-
-    bool directoryExistsInOraculumEnv(const std::string& directory) const;
-};
+        bool directoryExistsInOraculumEnv(const std::string& directory) const;
+    };
 
 } // namespace oraculum
