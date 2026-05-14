@@ -16,7 +16,6 @@ namespace oraculum {
 class CacheService {
 private:
     FileManager& fileManager_;
-    cpr::Response request(Provider provider, Connection connection);
 public:
     explicit CacheService(FileManager& fileManager);
 

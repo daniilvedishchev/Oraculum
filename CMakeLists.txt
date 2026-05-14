@@ -12,6 +12,8 @@ add_subdirectory(external/IXWebSocket)
 add_executable(ORACULUM
     src/app/main/oraculum.cpp
     src/app/validation/validator.cpp
+    connection/connection.cpp
+    orderbook/orderbook.cpp
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
     datasrc/providers/providers.cpp
