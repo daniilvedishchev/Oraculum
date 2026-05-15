@@ -19,7 +19,7 @@ void CacheService::updateSymbols(Provider provider) {
         std::filesystem::create_directories(fileManager_.environmentPath() / "cache" / providerName);
     }
 
-    const cpr::Response response = connector_.request(provider, Connection::Symbols);
+    const cpr::Response response = connector_.request(provider, Connection::Symbols,"");
     FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbols", true);
     const nlohmann::json data = nlohmann::json::parse(response.text);
 

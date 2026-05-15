@@ -17,14 +17,7 @@ namespace oraculum {
 
         return providerIt->second;
     }
-
-    const std::string& resolveProviderUrlOrThrow(Provider provider, Connection connectionType) {
-        auto providerIt = kProviderToUrls.find(provider);
-        if (providerIt == kProviderToUrls.end()) {
-            throw std::runtime_error("This provider is not supported.");
-        }
-
-        const ProviderBase& urls = providerIt->second;
+    const std::string& resolveConnectionBaseUrl (const ProviderBase& urls, const Connection& connectionType){
         switch (connectionType) {
             case Connection::Api:
                 return urls.apiBaseUrl;
@@ -33,8 +26,16 @@ namespace oraculum {
             case Connection::Symbols:
                 return urls.symbolsEndpoint;
         }
-
         throw std::runtime_error("Unsupported base selector.");
+    }
+
+    const std::string& resolveProviderBaseUrlOrThrow(const Provider& provider, const Connection& connectionType) {
+        auto providerIt = kProviderToUrls.find(provider);
+        if (providerIt == kProviderToUrls.end()) {
+            throw std::runtime_error("This provider is not supported.");
+        }
+        const ProviderBase& urls = providerIt->second;
+        return resolveConnectionBaseUrl(urls,connectionType);
     }
 
 } // namespace oraculum

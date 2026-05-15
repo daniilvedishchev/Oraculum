@@ -16,7 +16,7 @@ namespace oraculum {
         private:
             /* data */
         public:
-            Connector(/* args */);
-            cpr::Response request(Provider provider, Connection connectionType);
+            Connector();
+            cpr::Response request(const Provider& provider,const Connection& connectiontype ,const std::string& endpoint);
         };
 }

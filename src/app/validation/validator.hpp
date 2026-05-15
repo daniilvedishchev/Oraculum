@@ -3,17 +3,14 @@
 #include <string>
 #include <unordered_set>
 
-
 #include "utils/utils.hpp"
 #include "datasrc/providers/providers.hpp"
 #include "datasrc/binance/streamTypes/allStreamTypes.hpp"
 #include "datasrc/resolvers/providerResolver.hpp"
-#include "src/app/validation/requiredFields.hpp"
-#include "datasrc/binance/streamTypes/allStreamTypes.hpp"
 #include "infrastructure/market/intervals.hpp"
-
-class Config;
-class CacheService;
+#include "datasrc/binance/streamTypes/depth/levels.hpp"
+#include "config/config.hpp"
+#include "cacheservice/CacheService.hpp"
 
 namespace oraculum {
     class Validator {
@@ -28,8 +25,7 @@ namespace oraculum {
             void validateSpeedOrThrow_();
             void validateTimeFrameOrThrow_();
         public:
-            Validator(Config& cfg,CacheService& cache);
+            Validator(Config& cfg, CacheService& cache);
             void validate();
         };
 }
-

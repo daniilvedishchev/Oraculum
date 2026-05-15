@@ -1,12 +1,12 @@
 #pragma once
 
-#include "datasrc/binance/urls/binanceBaseUrls.hpp"
+#include <string>
 
+#include "datasrc/endpoints/endpoints.hpp"
+#include "connector/connector.hpp"
+#include "filemanager/fileManager.hpp"
 
-class Connector;
-class FileManager;
 namespace oraculum {
-    void makeOrderBookSnapshot(Provider& provider,Connector& connector, FileManager& fm);
+    void makeOrderBookSnapshot(Config& cfg, Connector& connector, Provider& provider, std::string& symbol, FileManager& fm);
 }
-
 
