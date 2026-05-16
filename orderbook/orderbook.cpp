@@ -12,27 +12,27 @@ namespace oraculum {
         ).count();
     }
     void makeOrderBookSnapshot(
-        Config& cfg,
-        Connector& connector,
-        Provider& provider,
-        std::string& symbol,
-        FileManager& fm ) 
+        const Config& cfg,
+        const Provider& provider,
+        const std::string& symbol,
+        const FileManager& fm ) 
     {   
         Connection connection = Connection::Api;
 
-        const std::string depth = cfg.depth.value_or("5000");
+        const std::string depth = cfg.depth.value_or("20");
 
         const std::filesystem::path snapshotDir =
             fm.environmentPath() / symbol / "orderbook" / "snapshots";
 
         std::filesystem::create_directories(snapshotDir);
 
-        const auto endpoint =
-            makeOrderBookSnapshotEndpoint(cfg, provider, connection);
+        const auto endpoint = makeOrderBookSnapshotEndpoint(cfg, provider);
 
-        const auto response =
-            connector.request(provider, connection, endpoint);
+        std::string url = buildUrl(provider,connection,endpoint); 
+        const auto response = requestRetryOrThrow(url);
+
         nlohmann::json snapshot;
+        
         try {
             snapshot = nlohmann::json::parse(response.text);
         } catch (const std::exception& e) {

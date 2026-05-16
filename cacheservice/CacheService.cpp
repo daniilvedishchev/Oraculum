@@ -6,7 +6,7 @@
 #include <unordered_set>
 namespace oraculum {
 
-CacheService::CacheService(FileManager& fileManager, Connector& connector) : fileManager_(fileManager), connector_(connector) {}
+CacheService::CacheService(FileManager& fileManager) : fileManager_(fileManager){}
 
 void CacheService::updateSymbols(Provider provider) {
     const auto providerNameIt = kProviderToString.find(provider);
@@ -18,8 +18,10 @@ void CacheService::updateSymbols(Provider provider) {
     if (!fileManager_.directoryExistsInOraculumEnv("cache/" + providerName)) {
         std::filesystem::create_directories(fileManager_.environmentPath() / "cache" / providerName);
     }
+    
+    std::string url = buildUrl(provider,Connection::Symbols,"");
+    const cpr::Response response = requestRetryOrThrow(url);
 
-    const cpr::Response response = connector_.request(provider, Connection::Symbols,"");
     FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbols", true);
     const nlohmann::json data = nlohmann::json::parse(response.text);
 

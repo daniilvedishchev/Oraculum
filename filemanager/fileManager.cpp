@@ -19,7 +19,7 @@ bool FileManager::directoryExistsInOraculumEnv(const std::string& directory) con
     return std::filesystem::exists(path_ / directory);
 }
 
-FileHandle FileManager::createFile(const std::string& name, bool overwrite) {
+FileHandle FileManager::createFile(const std::string& name, bool overwrite) const {
     const std::ios::openmode mode = overwrite ? std::ios::out : std::ios::app;
     const std::filesystem::path path = path_ / name;
 
@@ -31,7 +31,7 @@ FileHandle FileManager::createFile(const std::string& name, bool overwrite) {
     return FileHandle{std::move(stream), path};
 }
 
-FileHandle FileManager::createFile(const std::string& symbol, const std::string& type, bool overwrite) {
+FileHandle FileManager::createFile(const std::string& symbol, const std::string& type, bool overwrite) const {
     return createFile(symbol + "-" + type, overwrite);
 }
 

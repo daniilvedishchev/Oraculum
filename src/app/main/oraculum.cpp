@@ -1,21 +1,33 @@
 #include "src/app/main/oraculum.hpp"
+
+#include <iostream>
+
 namespace oraculum {
     oraculum::oraculum(int argc, char* argv[]):
-    cli_(std::move(CLI(argc,argv))),cfg_(std::move(cli_.parseCliArgs())),connector_(std::move(Connector{})),
-    fm_(std::move(FileManager())),cache_(CacheService(fm_,connector_)),validator_(std::move(Validator(cfg_,cache_))){}
+    cli_(CLI(argc,argv)),cfg_(cli_.parseCliArgs()),
+    fm_(FileManager()),cache_(CacheService(fm_)),validator_(Validator(cfg_,cache_)){}
 
     void oraculum::run(){
         validator_.validate();
         if (cfg_.writeLiveData && (cfg_.type == "depth")){
-            Provider provider = kStringToProvider.find(cfg_.provider)->second;
-            makeOrderBookSnapshot(cfg_,connector_,provider,cfg_.symbol,fm_);
+            auto it = kStringToProvider.find(cfg_.provider);
+            if (it == kStringToProvider.end()){
+                throw std::runtime_error("Invalid provider.");
+            }
+            Provider provider = it->second;
+            makeOrderBookSnapshot(cfg_,provider,cfg_.symbol,fm_);
         }
     }
 }
 
 
 int main(int argc, char* argv[]) {
-    oraculum::oraculum oracul(argc,argv);
-    oracul.run();
-
+    try {
+        oraculum::oraculum oracul(argc,argv);
+        oracul.run();
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error running oraculum: " << e.what() << '\n';
+        return 1;
+    }
 }

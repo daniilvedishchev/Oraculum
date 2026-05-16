@@ -7,9 +7,10 @@
 #include <unordered_set>
 
 #include "filemanager/fileManager.hpp"
+#include "connector/builder/builder.hpp"
 #include "datasrc/providers/providers.hpp"
 #include "datasrc/resolvers/providerResolver.hpp"
-#include "connector/connector.hpp"
+#include "connector/retry/retry.hpp"
 #include "utils/utils.hpp"
 
 namespace oraculum {
@@ -17,9 +18,8 @@ namespace oraculum {
 class CacheService {
 private:
     FileManager& fileManager_;
-    Connector& connector_;
 public:
-    explicit CacheService(FileManager& fileManager, Connector& connector);
+    explicit CacheService(FileManager& fileManager);
 
     void updateSymbols(Provider provider);
     bool isSymbolValidFromCache(Provider provider, const std::string& symbol);
