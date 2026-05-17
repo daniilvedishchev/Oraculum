@@ -16,6 +16,7 @@ namespace oraculum {
             }
             Provider provider = it->second;
             makeOrderBookSnapshot(cfg_,provider,cfg_.symbol,fm_);
+            writeOrderBookUpdates()
         }
     }
 }

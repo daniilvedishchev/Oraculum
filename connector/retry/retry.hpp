@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpr/cpr.h>
+#include <iostream>
 
 namespace oraculum {
     inline bool isRetryable(cpr::Response& response){
@@ -26,13 +27,12 @@ namespace oraculum {
 
     ){
         cpr::Response last;
-
         for (int attempt = 0; attempt < maxAttempts; ++attempt){
             cpr::Response last = cpr::Get(cpr::Url{url},cpr::Timeout{timeoutMs});
 
             auto httpOk = (last.status_code >= 200 && last.status_code < 300);
             auto transportOk = (last.error.code == cpr::ErrorCode::OK);
-
+            std::cout<<"[DEBUG] HTTP code:"<<last.status_code<<"\n";
             if (httpOk && transportOk){
                 return last;
             }
