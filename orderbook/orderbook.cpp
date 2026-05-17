@@ -11,6 +11,22 @@ namespace oraculum {
             std::chrono::system_clock::now().time_since_epoch()
         ).count();
     }
+
+    void writeOrderBookUpdates(const Config& cfg,
+        const Provider& provider,
+        const std::string& symbol,
+        const FileManager& fm){
+            Connection connection = Connection::WebSocket;
+            const std::filesystem::path updateDir =
+            fm.environmentPath() / symbol / "orderbook" / "updates";
+            std::filesystem::create_directories(updateDir);
+
+            const auto endpoint = makeOrderBookUpdateEndpoint(cfg,provider);
+            std::string url = buildUrl(provider,connection,endpoint);
+
+
+    }
+
     void makeOrderBookSnapshot(
         const Config& cfg,
         const Provider& provider,

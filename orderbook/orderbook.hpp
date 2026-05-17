@@ -10,5 +10,6 @@
 
 namespace oraculum {
     void makeOrderBookSnapshot(const Config& cfg, const Provider& provider, const std::string& symbol, const FileManager& fm);
+    void writeOrderBookUpdates(const Config& cfg,const Provider& provider,const std::string& symbol,const FileManager& fm );
 }
 

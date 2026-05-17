@@ -15,6 +15,14 @@ namespace oraculum {
         throw std::runtime_error("Orderbook snapshot not supported by this provider.");
     }
 
+    inline const std::string makeOrderBookUpdateEndpoint(const Config& cfg, const Provider& provider) {
+        if (provider == Provider::Binance){
+            std::string level = (cfg.depth.has_value()) ? cfg.depth.value() : "20";
+            return toLower(cfg.symbol) + "@" + cfg.type + level;
+        }
+        throw std::runtime_error("Orderbook update not supported by this provider.");
+    }
+
     inline std::string makeSymbolEndpoint(const Provider& provider) {
         auto urls = kProviderToUrls.find(provider)->second;
         const std::string& base = resolveConnectionBaseUrl(urls,Connection::Symbols);
