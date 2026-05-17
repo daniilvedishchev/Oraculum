@@ -13,6 +13,7 @@ add_executable(ORACULUM
     src/app/main/oraculum.cpp
     src/app/validation/validator.cpp
     orderbook/orderbook.cpp
+    socket/ring/bufferRing.cpp
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp
     datasrc/providers/providers.cpp

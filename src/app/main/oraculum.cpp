@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+
+
 namespace oraculum {
     oraculum::oraculum(int argc, char* argv[]):
     cli_(CLI(argc,argv)),cfg_(cli_.parseCliArgs()),
@@ -16,7 +18,7 @@ namespace oraculum {
             }
             Provider provider = it->second;
             makeOrderBookSnapshot(cfg_,provider,cfg_.symbol,fm_);
-            writeOrderBookUpdates()
+            // writeOrderBookUpdates()
         }
     }
 }
