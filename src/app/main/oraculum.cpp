@@ -1,8 +1,5 @@
-#include "src/app/main/oraculum.hpp"
-
 #include <iostream>
-
-
+#include "src/app/main/oraculum.hpp"
 
 namespace oraculum {
     oraculum::oraculum(int argc, char* argv[]):
@@ -12,13 +9,7 @@ namespace oraculum {
     void oraculum::run(){
         validator_.validate();
         if (cfg_.writeLiveData && (cfg_.type == "depth")){
-            auto it = kStringToProvider.find(cfg_.provider);
-            if (it == kStringToProvider.end()){
-                throw std::runtime_error("Invalid provider.");
-            }
-            Provider provider = it->second;
-            makeOrderBookSnapshot(cfg_,provider,cfg_.symbol,fm_);
-            // writeOrderBookUpdates()
+            OrderBookConstructor orderBook(cfg_, fm_);
         }
     }
 }

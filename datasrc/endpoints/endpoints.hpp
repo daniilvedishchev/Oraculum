@@ -7,8 +7,8 @@
 #include "utils/utils.hpp"
 
 namespace oraculum {
-    inline const std::string makeOrderBookSnapshotEndpoint(const Config& cfg, const Provider& provider) {
-        if (provider == Provider::Binance){
+    inline const std::string makeOrderBookSnapshotEndpoint(const Config& cfg) {
+        if (resolveProviderOrThrow(cfg.provider) == Provider::Binance){
             std::string level = (cfg.depth.has_value()) ? cfg.depth.value() : "20";
             return cfg.type + "?" + "symbol=" + toUpper(cfg.symbol) + "&" + "limit=" + level;
         }
