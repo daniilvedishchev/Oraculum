@@ -3,6 +3,7 @@
 #include "orderbook/depth/depthUpdate.hpp"
 
 namespace oraculum {
+    template<typename BufferItem>
     class RingBuffer {
     private:
 
@@ -10,14 +11,13 @@ namespace oraculum {
 
         bool isBufferFull_();
         bool isBufferEmpty_();
-        
-        void bufferAdd_(DepthUpdate& upd);
 
-        std::deque<DepthUpdate> buffer_;
-        DepthUpdate bufferGet_();
+        std::deque<BufferItem> buffer_;
 
     public:
         RingBuffer(int capacity);
+        void push(BufferItem& upd);
+        BufferItem pop();
     };
 }
 

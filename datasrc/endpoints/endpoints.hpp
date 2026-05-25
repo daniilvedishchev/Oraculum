@@ -15,8 +15,8 @@ namespace oraculum {
         throw std::runtime_error("Orderbook snapshot not supported by this provider.");
     }
 
-    inline const std::string makeOrderBookUpdateEndpoint(const Config& cfg, const Provider& provider) {
-        if (provider == Provider::Binance){
+    inline const std::string makeOrderBookUpdateEndpoint(const Config& cfg) {
+        if (resolveProviderOrThrow(cfg.provider) == Provider::Binance){
             std::string level = (cfg.depth.has_value()) ? cfg.depth.value() : "20";
             return toLower(cfg.symbol) + "@" + cfg.type + level;
         }

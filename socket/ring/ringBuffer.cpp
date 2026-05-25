@@ -13,7 +13,7 @@ namespace oraculum {
         return buffer_.empty();
     }
 
-    void RingBuffer::bufferAdd_(DepthUpdate& upd){
+    void RingBuffer::push(DepthUpdate& upd){
 
         if (isBufferFull_()){
             throw std::runtime_error("Buffer overflow, consider changing buffer capacity.");
@@ -22,7 +22,7 @@ namespace oraculum {
         buffer_.emplace_back(upd);
     }
 
-    DepthUpdate RingBuffer::bufferGet_(){
+    DepthUpdate RingBuffer::pop(){
 
         if (isBufferEmpty_()){
             throw std::runtime_error("Buffer underflow, empty buffer.");

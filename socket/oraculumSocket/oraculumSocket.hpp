@@ -8,10 +8,16 @@
 #include <ixwebsocket/IXUserAgent.h>
 #include "socket/callbacks/callback.hpp"
 
-class OraculumSocket {
-private:
-    std::string connectorUrl_;
-    ix::WebSocket socket_;
-public:
-    OraculumSocket(const std::string& providerName, const std::string& connectorUrl);
-};
+#include "socket/ring/ringBuffer.hpp"
+
+namespace oraculum {
+    class OraculumSocket {
+    private:
+        std::string connectorUrl_;
+    public:
+        ix::WebSocket socket_;
+        RingBuffer<DepthUpdate> orderBookUpdateBuffer_;
+        OraculumSocket(const std::string& providerName, const std::string& connectorUrl);
+    };
+}
+

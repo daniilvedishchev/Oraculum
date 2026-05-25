@@ -2,7 +2,7 @@
 #include <nlohmann/json.hpp>
 
 struct DepthUpdate {
-    std::string u;
-    std::string U;
+    long long firstUpdateId;
+    long long lastUpdateId;
     nlohmann::json raw;
 };

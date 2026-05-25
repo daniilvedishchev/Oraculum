@@ -8,7 +8,7 @@ namespace oraculum{
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm) : cfg_(cfg), DEPTH_(cfg.depth.value()), SYMBOL_(cfg.symbol) {
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), DEPTH_(cfg.depth.value()), SYMBOL_(cfg.symbol), SOCKET_(socket) {
         SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
         UPDATES_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "updates";
 
@@ -17,7 +17,6 @@ namespace oraculum{
         
         FileHandle file = fm.createFile(SNAPSHOT_PATH__.string());
         file.writeLine(snapshot.dump(2));
-
     }
 
     nlohmann::json OrderBookConstructor::parseOrderBookSnapshot(){
@@ -55,6 +54,27 @@ namespace oraculum{
             ".json";
     }
 
+    void OrderBookConstructor::startSocket(){
+        SOCKET_.socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
+            if (msg->type == ix::WebSocketMessageType::Error){
+                throw std::runtime_error("Error connecting to websocket: " + msg->errorInfo.reason + "\n");
+            }
+            if (msg->type == ix::WebSocketMessageType::Message){
+                try {
+                    const auto message = nlohmann::json::parse(msg->str);
+                    if (message["E"] == "DepthUpdate"){
+                        auto update = DepthUpdate{.firstUpdateId = message["U"], .lastUpdateId = message["u"], .raw = message};
+                        SOCKET_.orderBookUpdateBuffer_.push(update);
+                    }
+                } catch (const std::exception& e){
+                    std::cerr << e.what() << std::endl;
+                }
+
+            }
+        });
+
+    }
+
     nlohmann::json OrderBookConstructor::getOrderBookSnapshot()
     {   
 
@@ -82,5 +102,4 @@ namespace oraculum{
 
         return storedSnapshot;
     }
-
 }

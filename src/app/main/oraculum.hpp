@@ -15,6 +15,8 @@ namespace oraculum {
         FileManager fm_;
         CacheService cache_;
         Validator validator_;
+
+        void writeOrderBook();
     public:
         oraculum(int argc, char* argv[]);
         void run();
