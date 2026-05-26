@@ -1,22 +1,22 @@
 #include "orderbook/constructor/orderBookConstructor.hpp"
 
 namespace oraculum{
-
     std::int64_t nowMs() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), DEPTH_(cfg.depth.value()), SYMBOL_(cfg.symbol), SOCKET_(socket) {
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), DEPTH_(cfg.depth.value()), SYMBOL_(cfg.symbol), SOCKET_(socket),fm_(fm) {
         SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
         UPDATES_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "updates";
 
+        UPDATES_PATH__ = UPDATES_DIR__/makeUpdateFileName();
+
         createDirectories();
-        const auto snapshot(std::move(getOrderBookSnapshot()));
+
+        UPDATES_ = fm.createFile(UPDATES_PATH__.string());
         
-        FileHandle file = fm.createFile(SNAPSHOT_PATH__.string());
-        file.writeLine(snapshot.dump(2));
     }
 
     nlohmann::json OrderBookConstructor::parseOrderBookSnapshot(){
@@ -54,25 +54,85 @@ namespace oraculum{
             ".json";
     }
 
+    std::string OrderBookConstructor::makeUpdateFileName(){
+       return SYMBOL_ + "-" +
+            "DEPTH" + "-" +
+            DEPTH_ + "-" +
+            "update" +
+            ".json";
+    }
+
     void OrderBookConstructor::startSocket(){
         SOCKET_.socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
             if (msg->type == ix::WebSocketMessageType::Error){
-                throw std::runtime_error("Error connecting to websocket: " + msg->errorInfo.reason + "\n");
+                std::cerr << "Error connecting to websocket: " << msg->errorInfo.reason << std::endl;
+                return ;
             }
             if (msg->type == ix::WebSocketMessageType::Message){
                 try {
                     const auto message = nlohmann::json::parse(msg->str);
-                    if (message["E"] == "DepthUpdate"){
-                        auto update = DepthUpdate{.firstUpdateId = message["U"], .lastUpdateId = message["u"], .raw = message};
-                        SOCKET_.orderBookUpdateBuffer_.push(update);
+                    if (message["e"] == "depthUpdate"){
+                        auto update = DepthUpdate{.firstUpdateId = message["U"], 
+                                                  .lastUpdateId = message["u"],
+                                                  .raw = message};
+                        
+                        bool ok = SOCKET_.orderBookUpdateBuffer_.push(update);
+
+                        if (!ok){
+                            std::cerr<< "Buffer overflow, updates are lost!" << std::endl;
+                        }
                     }
                 } catch (const std::exception& e){
                     std::cerr << e.what() << std::endl;
                 }
-
             }
         });
+        SOCKET_.socket_.start();
+    }
 
+    void OrderBookConstructor::start(){
+        try {
+            running_ = true;
+
+            startSocket();
+
+            consumerThread_ = std::thread([this](){
+                consume();
+            });
+
+            const auto snapshot = getOrderBookSnapshot();
+
+            FileHandle fileSnapshot = fm_.createFile(SNAPSHOT_PATH__.string());
+            fileSnapshot.writeLine(snapshot.dump(2));
+        } catch (std::exception& e){
+            std::cerr << "[start error] " << e.what() << std::endl;
+            stop();
+        }
+    }
+
+    OrderBookConstructor::~OrderBookConstructor() {
+        std::cerr << "[DEBUG] destructor called\n";
+        stop();
+    }
+
+    void OrderBookConstructor::stop(){
+        std::cerr << "[DEBUG] stop called\n";
+        running_= false;
+        SOCKET_.socket_.stop();
+
+        if (consumerThread_.joinable()) {
+            consumerThread_.join();
+        }
+    }
+
+    void OrderBookConstructor::consume(){
+        while (running_){
+            DepthUpdate update = SOCKET_.orderBookUpdateBuffer_.pop();
+            if (!SYNCRONIZED_ORDERBOOK){
+                FIRST_UPDATE_ID = std::min(update.firstUpdateId,FIRST_UPDATE_ID);
+            }
+            UPDATES_.writeLine(update.raw.dump());
+        }
     }
 
     nlohmann::json OrderBookConstructor::getOrderBookSnapshot()
@@ -84,10 +144,6 @@ namespace oraculum{
         const std::string fileName = makeSnapshotFileName(lastUpdateId);
 
         SNAPSHOT_PATH__ = SNAPSHOT_DIR__ / fileName;
-
-        if (std::filesystem::exists(SNAPSHOT_PATH__)) {
-            throw std::runtime_error("Already exist.");
-        }
 
         nlohmann::json storedSnapshot = {
             {"provider", cfg_.provider},

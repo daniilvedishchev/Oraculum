@@ -16,9 +16,15 @@ namespace oraculum {
     void oraculum::writeOrderBook(){
         std::string endpoint = makeOrderBookUpdateEndpoint(cfg_);
         std::string url = buildUrl(resolveProviderOrThrow(cfg_.provider),Connection::WebSocket,endpoint);
+        std::cout << url << std::endl;
         try {
             OraculumSocket socket = OraculumSocket(cfg_.provider,url);
             OrderBookConstructor orderBook(cfg_, fm_, socket);
+            orderBook.start();
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+            orderBook.stop();
         } catch(const std::exception& e){
             std::cerr<<"Error"<<e.what()<<std::endl;
         }
