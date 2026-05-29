@@ -7,7 +7,13 @@ namespace oraculum{
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), DEPTH_(cfg.depth.value()), SYMBOL_(cfg.symbol), SOCKET_(socket),fm_(fm) {
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), 
+                                                DEPTH_(cfg.depth.value()), 
+                                                SYMBOL_(cfg.symbol), 
+                                                SOCKET_(socket), 
+                                                fm_(fm) {
+        
+        firstUpdateReceived_= false;
         SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
         UPDATES_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "updates";
 
@@ -62,6 +68,30 @@ namespace oraculum{
             ".json";
     }
 
+    /** 
+        * @brief This function sets up the first updateID , usefull for orderbook reconstruction
+        * and moves update to the buffer
+    */
+    std::optional<DepthUpdate> OrderBookConstructor::getOrderBookUpdate(const ix::WebSocketMessagePtr& msg){
+        {
+            std::lock_guard<std::mutex> lock(firstUpdateMutex_);
+            const auto message = nlohmann::json::parse(msg->str);
+
+            if (!firstUpdateReceived_){
+                firstUpdateReceived_ = true;
+                firstUpdateCv_.notify_all();
+            }
+
+            return DepthUpdate {    
+                .firstUpdateId = message.at("U").get<long long>(), 
+                .lastUpdateId = message.at("u").get<long long>(),
+                .bids = message.at("b").get<std::vector<std::vector<std::string>>>(),
+                .asks = message.at("a").get<std::vector<std::vector<std::string>>>(),
+                .raw = msg->str
+            };
+        }
+    }
+
     void OrderBookConstructor::startSocket(){
         SOCKET_.socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
             if (msg->type == ix::WebSocketMessageType::Error){
@@ -70,16 +100,10 @@ namespace oraculum{
             }
             if (msg->type == ix::WebSocketMessageType::Message){
                 try {
-                    const auto message = nlohmann::json::parse(msg->str);
-                    if (message["e"] == "depthUpdate"){
-                        auto update = DepthUpdate{.firstUpdateId = message["U"], 
-                                                  .lastUpdateId = message["u"],
-                                                  .raw = message};
-                        
-                        bool ok = SOCKET_.orderBookUpdateBuffer_.push(update);
-
+                    if (auto upd = getOrderBookUpdate(msg)){
+                        bool ok = SOCKET_.orderBookUpdateBuffer_.push(std::move(*upd));
                         if (!ok){
-                            std::cerr<< "Buffer overflow, updates are lost!" << std::endl;
+                            std::cerr<< "Buffer overflow, missed updates.";
                         }
                     }
                 } catch (const std::exception& e){
@@ -96,14 +120,13 @@ namespace oraculum{
 
             startSocket();
 
-            consumerThread_ = std::thread([this](){
+            auto snapshot = OrderBookSnapshotAfterFirstUpdate();
+            localBook_.emplace(std::move(snapshot));
+
+            consumerThread_ = std::thread([this]() {
                 consume();
             });
 
-            const auto snapshot = getOrderBookSnapshot();
-
-            FileHandle fileSnapshot = fm_.createFile(SNAPSHOT_PATH__.string());
-            fileSnapshot.writeLine(snapshot.dump(2));
         } catch (std::exception& e){
             std::cerr << "[start error] " << e.what() << std::endl;
             stop();
@@ -118,7 +141,9 @@ namespace oraculum{
     void OrderBookConstructor::stop(){
         std::cerr << "[DEBUG] stop called\n";
         running_= false;
+
         SOCKET_.socket_.stop();
+        SOCKET_.orderBookUpdateBuffer_.close();
 
         if (consumerThread_.joinable()) {
             consumerThread_.join();
@@ -127,21 +152,35 @@ namespace oraculum{
 
     void OrderBookConstructor::consume(){
         while (running_){
-            DepthUpdate update = SOCKET_.orderBookUpdateBuffer_.pop();
-            if (!SYNCRONIZED_ORDERBOOK){
-                FIRST_UPDATE_ID = std::min(update.firstUpdateId,FIRST_UPDATE_ID);
+            auto update = SOCKET_.orderBookUpdateBuffer_.pop();
+            if (!update) break;
+            else if (update.value().lastUpdateId <= localBook_->LAST_UPDATE_ID) continue;
+            else if (update.value().firstUpdateId > localBook_->LAST_UPDATE_ID + 1){
+                std::lock_guard<std::mutex> lock(firstUpdateMutex_);
+                firstUpdateReceived_ = false;
+                auto snap = OrderBookSnapshotAfterFirstUpdate();
+                localBook_.emplace(std::move(snap));
+                continue;
+            } else {
+                localBook_->applyUpdate(update.value());
+                UPDATES_.writeLine(update->raw);
             }
-            UPDATES_.writeLine(update.raw.dump());
         }
     }
+    
+    nlohmann::json OrderBookConstructor::OrderBookSnapshotAfterFirstUpdate() {   
+        
+        {   
+            std::unique_lock<std::mutex> lock(firstUpdateMutex_);
+            firstUpdateCv_.wait(lock,[this]{
+                return firstUpdateReceived_ || !running_;
+            });
+        }
 
-    nlohmann::json OrderBookConstructor::getOrderBookSnapshot()
-    {   
+        snapshot = parseOrderBookSnapshot();
+        SNAPSHOT_ID = snapshot.at("lastUpdateId").get<long long>();
 
-        nlohmann::json snapshot(std::move(parseOrderBookSnapshot()));
-        const auto lastUpdateId = snapshot["lastUpdateId"].get<std::uint64_t>();
-
-        const std::string fileName = makeSnapshotFileName(lastUpdateId);
+        const std::string fileName = makeSnapshotFileName(SNAPSHOT_ID);
 
         SNAPSHOT_PATH__ = SNAPSHOT_DIR__ / fileName;
 
@@ -152,9 +191,12 @@ namespace oraculum{
             {"type", cfg_.type},
             {"depth", DEPTH_},
             {"local_ts_ms", nowMs()},
-            {"last_update_id", lastUpdateId},
+            {"last_update_id", SNAPSHOT_ID},
             {"snapshot", snapshot}
         };
+
+        FileHandle fileSnapshot = fm_.createFile(SNAPSHOT_PATH__.string());
+        fileSnapshot.writeLine(storedSnapshot.dump(2));
 
         return storedSnapshot;
     }

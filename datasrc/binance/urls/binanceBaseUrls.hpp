@@ -4,7 +4,7 @@
 
 namespace oraculum {
     inline const ProviderBase kBinanceBaseUrls = {
-        "https://fapi.binance.com/fapi/v1/",
+        "https://api.binance.com/api/v3/",
         "wss://stream.binance.com:443/ws/",
         "https://api.binance.com/api/v3/exchangeInfo"
     };

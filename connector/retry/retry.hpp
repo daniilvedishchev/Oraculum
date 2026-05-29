@@ -32,8 +32,9 @@ namespace oraculum {
 
             auto httpOk = (last.status_code >= 200 && last.status_code < 300);
             auto transportOk = (last.error.code == cpr::ErrorCode::OK);
-            std::cout<<"[DEBUG] HTTP code:"<<last.status_code<<"\n";
+            
             if (httpOk && transportOk){
+                std::cerr<<"[Oraculum] Successfull connection, code status:"<<last.status_code<<"\n";
                 return last;
             }
 
