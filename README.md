@@ -1,380 +1,338 @@
-## Oraculum
----
-Oraculum is a portable C++ market microstructure data recorder designed for quantitative research, order book analysis, and machine learning-based trading experiments.The project focuses on collecting high-frequency market data such as order book snapshots, trades, quotes, and derived features, then storing them locally in a clean append-only format for future backtesting and ML model training.
+# Oraculum
 
-## Overview
+> **Portable C++ market microstructure recorder for quantitative research, order book analysis, and ML-based trading experiments.**
 
-In quantitative research, clean historical data is one of the most important assets.
-
-Oraculum focuses on one core task:
-
-> reliably record structured data streams into local storage without overwriting existing information.
-
-The project is designed to be simple, fast, portable, and suitable for future expansion into a complete quant data toolkit.
+Oraculum connects to live exchange WebSocket feeds, reconstructs a local order book in real time, computes market microstructure features, and persists everything to disk in a clean append-only format — ready for backtesting, statistical modelling, or training alpha-generating ML models.
 
 ---
 
-## Use Cases
+## Table of Contents
 
-Oraculum can be used for:
-
-- market data collection
-- crypto tick data recording
-- stock price logging
-- trade and quote storage
-- candle/OHLCV data collection
-- backtesting dataset preparation
-- local research data storage
-- API response archiving
-- trading bot data logging
-- quantitative experiment tracking
-
----
-
-## Core Idea
-
-A typical quant workflow needs data like:
-
-```text
-symbol + data_type + timestamp + value
-```
-
-For example:
-
-```text
-BTCUSDT trades
-AAPL price
-ETHUSDT candles
-SPY signals
-```
-
-Oraculum organizes this data into predictable local files.
-
-Example command:
-
-```bash
-oraculum.exe BTCUSDT trades
-```
-
-Example output file:
-
-```text
-Documents/Oraculum/BTCUSDT-trades.csv
-```
-
-If the file already exists, Oraculum appends new data instead of overwriting old records.
+- [Why Oraculum](#why-oraculum)
+- [Architecture](#architecture)
+- [Modules](#modules)
+- [Quant Data Model](#quant-data-model)
+- [Order Book Reconstruction](#order-book-reconstruction)
+- [Feature Engine](#feature-engine)
+- [Data Pipeline](#data-pipeline)
+- [Build](#build)
+- [Usage](#usage)
+- [Output Format](#output-format)
+- [Roadmap](#roadmap)
+- [Design Principles](#design-principles)
 
 ---
 
-## Features
+## Why Oraculum
 
-- Written in modern C++
-- Uses C++17 `std::filesystem`
-- Portable executable design
-- No compiler required on target machine
-- Automatic folder creation
-- Append-only file writing
-- Safe path construction
-- Symbol-based file organization
-- Data-type based file naming
-- Suitable for CSV/JSON storage
-- Designed for quant research workflows
-- Windows `.exe` support
-- Future macOS `.pkg` packaging support
+Proprietary tick data from vendors (Refinitiv, Bloomberg, Kaiko) costs thousands of dollars per year. Cloud-hosted data pipelines add latency, operational complexity, and vendor lock-in.
 
----
+Oraculum is the alternative: compile once, run anywhere, collect everything locally.
 
-## Why Oraculum?
-
-Many research tools rely on Python scripts, virtual environments, dependencies, and manual configuration.
-
-Oraculum is designed to be different:
-
-```text
-compile once -> copy executable -> run anywhere -> collect data
 ```
-
-This makes it useful for:
-
-- running data collection on another machine
-- creating small portable quant tools
-- recording market data without installing a development environment
-- building a local research database step by step
-
----
-
-## Example
-
-```bash
-oraculum.exe BTCUSDT trades
-```
-
-Possible output:
-
-```text
-C:\Users\User\Documents\Oraculum\BTCUSDT-trades.csv
-```
-
-Another example:
-
-```bash
-oraculum.exe AAPL price
-```
-
-Possible output:
-
-```text
-C:\Users\User\Documents\Oraculum\AAPL-price.csv
+exchange WebSocket feed
+        │
+        ▼
+  Oraculum process
+        │
+   ┌────┴─────────────┐
+   │  LocalOrderBook  │  ← full depth reconstruction
+   │  FeatureEngine   │  ← derived microstructure signals
+   │  CacheService    │  ← in-memory ring buffer
+   │  FileManager     │  ← append-only disk persistence
+   └──────────────────┘
+        │
+        ▼
+  symbol/data-type.csv
+  (ready for pandas, backtrader, PyTorch)
 ```
 
 ---
 
-## File Writing Behavior
+## Architecture
 
-Oraculum uses append mode for file output.
-
-```cpp
-std::ofstream file(path, std::ios::app);
 ```
-
-This means:
-
-| Situation | Behavior |
-|---|---|
-| File does not exist | Creates a new file |
-| File already exists | Opens existing file |
-| Existing data | Preserved |
-| New data | Added to the end |
-| Folder does not exist | Created automatically |
-
-This is important for data collection because historical records should not be accidentally deleted.
-
----
-
-## Quant Data Structure
-
-A future record may look like this:
-
-```csv
-timestamp,symbol,type,price,volume
-2026-01-01T12:00:00Z,BTCUSDT,trade,42150.25,0.018
-```
-
-Or for OHLCV data:
-
-```csv
-timestamp,symbol,open,high,low,close,volume
-2026-01-01T12:00:00Z,BTCUSDT,42100.00,42200.00,42050.00,42150.25,182.45
-```
-
-The goal is to make every output file easy to use later in:
-
-- backtesting engines
-- Python notebooks
-- pandas
-- statistical models
-- trading strategy research
-- machine learning pipelines
-
----
-
-## Project Structure
-
-```text
 oraculum/
-├── src/
-│   ├── main.cpp
-│   ├── writer.cpp
-│   └── writer.hpp
-├── include/
-├── build/
-├── data/
-├── logs/
-├── README.md
-├── .gitignore
+├── src/app/
+│   ├── main/oraculum.cpp          ← entry point & orchestration
+│   └── validation/validator.cpp   ← input & schema validation
+│
+├── socket/
+│   ├── oraculumSocket/            ← IXWebSocket wrapper, reconnect logic
+│   └── callbacks/callback.cpp     ← raw message dispatch
+│
+├── orderbook/
+│   ├── constructor/               ← snapshot + delta application
+│   ├── localbook/LocalOrderBook   ← bid/ask price-level maps
+│   └── features/FeatureEngine     ← microstructure feature computation
+│
+├── datasrc/
+│   ├── providers/providers.cpp    ← exchange-specific feed configs
+│   └── resolvers/providerResolver ← symbol → feed URL resolution
+│
+├── cacheservice/CacheService      ← in-memory buffer before flush
+├── filemanager/                   ← file creation, path logic, rotation
+├── cli/cli.cpp                    ← argument parsing
+├── config/                        ← exchange/symbol config
+├── keywords/                      ← data type constants
+├── namespace/                     ← project-wide type aliases
+├── utils/                         ← misc helpers
+│
+├── external/
+│   ├── IXWebSocket                ← WebSocket client (TLS via OpenSSL)
+│   ├── cpr                        ← HTTP client (REST snapshots)
+│   └── json                       ← nlohmann/json
+│
 └── CMakeLists.txt
 ```
 
-Recommended ignored folders:
+---
 
-```text
-build/
-data/
-logs/
+## Modules
+
+### `socket/` — WebSocket Layer
+
+Wraps [IXWebSocket](https://github.com/machinezone/IXWebSocket) with automatic reconnection, TLS support (OpenSSL on macOS/Linux, native on Windows), and a callback dispatcher that routes raw JSON frames to the correct handler.
+
+Key responsibilities:
+- Establish and maintain the persistent WebSocket connection
+- Parse the exchange protocol envelope (sequence numbers, event types)
+- Forward order book events and trade events to downstream handlers
+
+### `orderbook/` — Local Order Book
+
+Maintains a full price-level order book in memory, applying real-time delta updates over an initial REST snapshot.
+
+`LocalOrderBook` keeps separate sorted maps for bids (descending) and asks (ascending):
+
+```
+bids:  { 42150.00 → 1.824, 42149.50 → 3.100, ... }
+asks:  { 42150.50 → 0.550, 42151.00 → 2.340, ... }
 ```
 
-The source code should be tracked by Git.  
-Generated data, logs, and build artifacts should not be pushed.
+On each WebSocket delta:
+1. Apply price-level additions, updates, and deletions
+2. Recompute best bid / best ask
+3. Trigger `FeatureEngine` to emit a new feature snapshot
+
+### `orderbook/features/FeatureEngine` — Microstructure Features
+
+Computes derived signals from the reconstructed book on every update tick. These are the bread and butter of market microstructure research and short-horizon alpha generation:
+
+| Feature | Description |
+|---|---|
+| **Mid price** | `(best_bid + best_ask) / 2` |
+| **Spread** | `best_ask − best_bid` (in ticks and bps) |
+| **Book imbalance** | `(bid_qty − ask_qty) / (bid_qty + ask_qty)` at N levels |
+| **Weighted mid** | Volume-weighted average of top N bid and ask levels |
+| **Price impact** | Cost to walk N levels of the book |
+| **Depth ratio** | Ratio of cumulative bid depth to ask depth |
+| **Quote intensity** | Rate of book updates per second |
+| **Trade flow** | Signed volume (buy-initiated vs sell-initiated trades) |
+
+These features feed directly into statistical models (linear regression, logistic classification) or ML pipelines (gradient boosting, LSTM, reinforcement learning).
+
+### `datasrc/` — Data Source Providers
+
+Abstracts exchange-specific connection logic behind a common interface. The `providerResolver` maps a symbol string to the correct WebSocket endpoint, REST snapshot URL, and message schema.
+
+Adding a new exchange requires implementing the provider interface — the rest of the pipeline is exchange-agnostic.
+
+### `cacheservice/CacheService` — In-Memory Buffer
+
+A ring buffer that accumulates feature snapshots before flushing to disk. This decouples the high-frequency write path from slower filesystem I/O, preventing the recording loop from blocking on disk latency.
+
+### `filemanager/` — Persistent Storage
+
+Handles append-only file writes. Files are organized by symbol and data type:
+
+```
+Documents/Oraculum/
+├── BTCUSDT/
+│   ├── trades.csv
+│   ├── book_snapshots.csv
+│   └── features.csv
+├── ETHUSDT/
+│   └── trades.csv
+└── logs/
+    └── oraculum.log
+```
+
+`std::ios::app` is used exclusively — historical data is never overwritten.
+
+---
+
+## Quant Data Model
+
+### Trade Record
+
+```csv
+timestamp,symbol,side,price,qty,trade_id
+2026-01-15T09:31:00.123Z,BTCUSDT,buy,42150.25,0.018,1748291023
+```
+
+### Order Book Snapshot
+
+```csv
+timestamp,symbol,bid_price_1,bid_qty_1,ask_price_1,ask_qty_1,...,bid_price_10,bid_qty_10,ask_price_10,ask_qty_10
+2026-01-15T09:31:00.123Z,BTCUSDT,42150.00,1.824,42150.50,0.550,...
+```
+
+### Feature Snapshot
+
+```csv
+timestamp,symbol,mid,spread_bps,imbalance_1,imbalance_5,weighted_mid,depth_ratio,trade_flow_1s
+2026-01-15T09:31:00.123Z,BTCUSDT,42150.25,0.24,0.312,-0.051,42150.18,1.14,−0.003
+```
+
+All timestamps are ISO 8601 UTC with millisecond precision. Every file is ready to load with `pd.read_csv(..., parse_dates=['timestamp'])`.
+
+---
+
+## Order Book Reconstruction
+
+Oraculum uses the standard snapshot + delta reconstruction pattern:
+
+```
+1. REST GET /api/v3/depth?symbol=BTCUSDT&limit=1000
+   → initialise LocalOrderBook with full snapshot
+
+2. WebSocket stream: depthUpdate events
+   → apply each delta in sequence number order
+   → skip deltas with sequence < snapshot sequence
+   → raise gap error if a sequence number is skipped
+```
+
+This is the same approach used by professional data vendors and HFT firms to maintain accurate books from public feeds.
+
+---
+
+## Feature Engine
+
+The `FeatureEngine` is designed to be extended. To add a new feature:
+
+```cpp
+// In FeatureEngine.cpp
+double myFeature(const LocalOrderBook& book, int levels) {
+    // compute from book.bids() and book.asks()
+    return result;
+}
+```
+
+Computed features are appended to the current `FeatureSnapshot` struct and flushed through the `CacheService` to disk.
+
+This architecture makes Oraculum suitable as a **feature store** for online and offline ML training. A Python notebook can simply:
+
+```python
+import pandas as pd
+
+features = pd.read_csv("~/Documents/Oraculum/BTCUSDT/features.csv", parse_dates=["timestamp"])
+features.set_index("timestamp", inplace=True)
+
+# label: next-tick return
+features["target"] = features["mid"].pct_change().shift(-1)
+
+# train a classifier on microstructure features
+from sklearn.ensemble import GradientBoostingClassifier
+# ...
+```
 
 ---
 
 ## Build
 
-### Using g++
+**Requirements:** C++17, CMake ≥ 3.20, OpenSSL (macOS: via Homebrew; Linux: `libssl-dev`; Windows: system native)
 
 ```bash
-g++ src/main.cpp src/writer.cpp -o oraculum.exe -std=c++17
-```
+# Clone with submodules (IXWebSocket, cpr, nlohmann_json are external submodules)
+git clone --recurse-submodules https://github.com/daniilvedishchev/Oraculum.git
+cd Oraculum
 
-### Using CMake
-
-```bash
+# Configure
 cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+# Build
 cmake --build build --config Release
+
+# Executable
+./build/ORACULUM          # Linux / macOS
+.\build\ORACULUM.exe      # Windows
 ```
 
-The compiled executable will be generated inside the build directory.
+### macOS (Apple Silicon)
+
+OpenSSL is detected automatically from `/opt/homebrew/opt/openssl@3`. If not found, install it:
+
+```bash
+brew install openssl@3
+```
+
+### Linux
+
+```bash
+sudo apt install libssl-dev
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
 ---
 
-## Windows Usage
+## Usage
 
-```bash
-oraculum.exe <symbol> <type>
+```
+ORACULUM <symbol> <data_type> [options]
 ```
 
-Examples:
-
 ```bash
-oraculum.exe BTCUSDT trades
-oraculum.exe ETHUSDT candles
-oraculum.exe AAPL price
-oraculum.exe SPY signals
+# Record BTC/USDT trades and order book
+./ORACULUM BTCUSDT trades
+./ORACULUM BTCUSDT book_snapshots
+
+# Record derived microstructure features
+./ORACULUM ETHUSDT features
+
+# Equities (when provider is configured)
+./ORACULUM AAPL trades
+./ORACULUM SPY signals
 ```
 
-Arguments:
+### Planned named arguments (Phase 2 CLI)
 
-| Argument | Description |
-|---|---|
-| `symbol` | Trading symbol, asset name, or data source |
-| `type` | Data category such as trades, candles, price, signals, logs |
+```bash
+ORACULUM --symbol BTCUSDT --type features --depth 10 --interval 100ms
+ORACULUM --symbol ETHUSDT --type trades --output ~/quant_data/
+ORACULUM --symbol BTCUSDT --type book_snapshots --exchange binance --format csv
+```
+
+| Flag | Description | Default |
+|---|---|---|
+| `--symbol` | Instrument identifier | required |
+| `--type` | `trades`, `book_snapshots`, `features`, `candles` | required |
+| `--depth` | Order book depth levels to record | `10` |
+| `--interval` | Feature snapshot interval (ms) | `100` |
+| `--output` | Output directory | `~/Documents/Oraculum/` |
+| `--exchange` | Data provider | auto-detected from symbol |
+| `--format` | `csv` or `json` | `csv` |
 
 ---
 
-## Example Workflow
+## Output Format
 
-1. Build the executable:
+### File naming
 
-```bash
-g++ src/main.cpp src/writer.cpp -o oraculum.exe -std=c++17
+```
+{output_dir}/{SYMBOL}/{data_type}.csv
 ```
 
-2. Copy `oraculum.exe` to another Windows machine.
+### Append-only guarantee
 
-3. Run:
-
-```bash
-oraculum.exe BTCUSDT trades
+```cpp
+std::ofstream file(path, std::ios::app);
 ```
 
-4. Oraculum creates the required folder structure.
+Historical data is never modified. If the process is killed and restarted, recording resumes from the next event. This makes Oraculum safe to run as a long-running background process or `systemd` service.
 
-5. New records are appended to the correct data file.
-
----
-
-## Planned CLI
-
-Future versions may support named arguments:
-
-```bash
-oraculum.exe --symbol BTCUSDT --type trades --format csv
-```
-
-```bash
-oraculum.exe --symbol AAPL --type price --output "C:\Users\User\Documents\QuantData"
-```
-
-```bash
-oraculum.exe --symbol ETHUSDT --type candles --interval 1m
-```
-
-Possible future options:
-
-| Option | Description |
-|---|---|
-| `--symbol` | Market symbol |
-| `--type` | Data type |
-| `--format` | Output format: csv/json/txt |
-| `--output` | Custom output folder |
-| `--interval` | Recording interval |
-| `--exchange` | Exchange or data provider |
-| `--append` | Append mode |
-| `--log` | Enable logs |
-
----
-
-## Planned Features
-
-- CSV writer
-- JSON writer
-- Config file support
-- Custom output directory
-- Timestamped records
-- Data validation
-- Logging system
-- Error reporting
-- Multiple symbols support
-- Exchange/source field
-- OHLCV format support
-- Trade data format support
-- Signal recording
-- Windows release build
-- macOS `.pkg` installer
-- Background recording mode
-- Basic data integrity checks
-
----
-
-## Example Future Data Layout
-
-```text
-Documents/
-└── Oraculum/
-    ├── BTCUSDT/
-    │   ├── trades.csv
-    │   ├── candles.csv
-    │   └── signals.csv
-    ├── ETHUSDT/
-    │   ├── trades.csv
-    │   └── candles.csv
-    └── logs/
-        └── oraculum.log
-```
-
-This layout is useful for research because each symbol and data type can be separated cleanly.
-
----
-
-## Design Principles
-
-Oraculum follows several important principles:
-
-### 1. Data safety
-
-Existing files should not be overwritten accidentally.
-
-### 2. Simple storage
-
-Data should be saved in formats that are easy to inspect and reuse.
-
-### 3. Portability
-
-The compiled program should run on another machine without requiring a compiler.
-
-### 4. Predictable paths
-
-Files should be stored in clear, consistent locations.
-
-### 5. Quant-first structure
-
-The project is designed around symbols, data types, timestamps, and records.
-
----
-
-## `.gitignore`
-
-Recommended `.gitignore`:
+### `.gitignore` for data directories
 
 ```gitignore
 build/
@@ -387,121 +345,81 @@ logs/
 *.exe
 *.o
 *.obj
-*.out
-
-.vscode/
-.idea/
 .DS_Store
+.idea/
+.vscode/
 ```
-
-If a folder was already pushed to GitHub, remove it from Git tracking:
-
-```bash
-git rm -r --cached build/
-git rm -r --cached data/
-git rm -r --cached logs/
-
-git add .gitignore
-git commit -m "Ignore generated folders"
-git push
-```
-
-This keeps the folders locally but removes them from the repository.
-
----
-
-## Requirements
-
-- C++17 or newer
-- `std::filesystem`
-- g++, clang++, MSVC, or CMake
-- Windows, macOS, or Linux
-
----
-
-## Build Targets
-
-```text
-Windows -> oraculum.exe
-macOS   -> oraculum.pkg
-Linux   -> oraculum
-```
-
-The goal is to make Oraculum easy to distribute as a compiled executable.
 
 ---
 
 ## Roadmap
 
-### Phase 1 — Core Writer
+### Phase 1 — Core Recorder ✅
+- WebSocket connection with reconnect logic
+- LocalOrderBook (snapshot + delta reconstruction)
+- Append-only CSV persistence
+- CLI (positional arguments)
 
-- create folders
-- create files
-- append data
-- accept command-line parameters
+### Phase 2 — Feature Store
+- Full FeatureEngine (spread, imbalance, weighted mid, depth ratio, trade flow)
+- Named CLI arguments
+- Config file support (YAML/TOML)
+- Custom output directory
 
-### Phase 2 — Quant Data Format
+### Phase 3 — Multi-Symbol & Exchanges
+- Parallel recording of multiple symbols
+- Exchange-agnostic provider interface (Binance, Coinbase, Kraken, Bybit)
+- Equities feed support
 
-- CSV structure
-- timestamps
-- symbol/type fields
-- clean file naming
-
-### Phase 3 — Config System
-
-- config file
-- custom output directory
-- default symbols
-- default data types
-
-### Phase 4 — Data Pipeline
-
-- API integration
-- exchange/source support
-- scheduled recording
-- logs and error handling
+### Phase 4 — Research Utilities
+- Data integrity validation (gap detection, sequence checks)
+- Compression (gzip rotation for long-running sessions)
+- Python bindings for live feature access
+- Real-time feature streaming over local socket
 
 ### Phase 5 — Distribution
-
-- Windows `.exe`
-- macOS `.pkg`
-- release builds
-- installation guide
-
----
-
-## Long-Term Vision
-
-Oraculum is intended to become a small but reliable local quant data engine.
-
-Possible future direction:
-
-```text
-data collection -> local storage -> research dataset -> backtesting -> strategy analysis
-```
-
-The project starts with safe local writing, but the architecture can grow into a complete market data recording system.
+- Windows `.exe` release build
+- macOS `.pkg` installer
+- Docker image for server-side recording
+- GitHub Actions CI
 
 ---
 
-## Status
+## Design Principles
 
-Oraculum is currently in early development.
+**Data safety above all.** Existing records are never overwritten. The append-only model means a crash or restart can never corrupt historical data.
 
-The first goal is to build a stable local file writer that can safely create folders and append records without data loss.
+**Exchange-agnostic core.** The order book reconstruction and feature engine are fully decoupled from exchange protocols. Adding Coinbase or Kraken support means writing a new provider, not modifying the core.
+
+**Quant-first data layout.** Every output file is organised around the (symbol, data_type, timestamp) triple. Files load cleanly into pandas, polars, or any CSV-aware tool without pre-processing.
+
+**Portable binary.** Compile on one machine, copy the executable, run anywhere. No Python environment, no runtime dependencies, no configuration beyond the command line.
+
+**Latency-aware I/O.** The `CacheService` buffer decouples the hot recording path from disk writes. The WebSocket callback never blocks on filesystem I/O.
+
+---
+
+## Requirements
+
+| Dependency | Version | Purpose |
+|---|---|---|
+| C++ standard | C++17 | `std::filesystem`, structured bindings |
+| CMake | ≥ 3.20 | Build system |
+| IXWebSocket | submodule | WebSocket client with TLS |
+| cpr | submodule | HTTP client for REST snapshots |
+| nlohmann/json | submodule | JSON parsing |
+| OpenSSL | system | TLS for secure WebSocket connections |
 
 ---
 
 ## License
 
-MIT License.
-
-You are free to use, modify, and distribute this project.
+MIT License — free to use, modify, and distribute.
 
 ---
 
 ## Author
 
-Created by **Daniil Vedishchev**.
+Built by **Daniil Vedishchev**.
 
-**Oraculum** — portable market data recording for quantitative research.
+**Oraculum** — market microstructure data, recorded locally, ready for research.
