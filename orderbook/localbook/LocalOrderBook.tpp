@@ -6,7 +6,10 @@ void LocalOrderBook::extractPriceQtyTicksFromLvl(std::map<int64_t,int64_t,Compar
     for (const auto& level : levels){
         int64_t PRICE_IN_TICKS = priceQtyTicks(level[0]);
         int64_t QTY_IN_TICKS = priceQtyTicks(level[1],true);
-        if (QTY_IN_TICKS == 0 && book.find(PRICE_IN_TICKS) != book.end()){
+        if (QTY_IN_TICKS == 0){
+            if (book.find(PRICE_IN_TICKS) == book.end()){
+                continue;
+            }
             book.erase(PRICE_IN_TICKS);
             continue;
         }

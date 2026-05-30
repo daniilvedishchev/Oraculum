@@ -36,6 +36,7 @@ add_executable(ORACULUM
     src/app/main/oraculum.cpp
     src/app/validation/validator.cpp
     orderbook/constructor/orderBookConstructor.cpp
+    orderbook/features/FeatureEngine.cpp
     orderbook/localbook/LocalOrderBook.cpp
     filemanager/fileManager.cpp
     cacheservice/CacheService.cpp

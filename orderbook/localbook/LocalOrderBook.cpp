@@ -1,4 +1,5 @@
 #include "orderbook/localbook/LocalOrderBook.hpp"
+#include "orderbook/features/FeatureEngine.hpp"
 
 LocalOrderBook::LocalOrderBook(nlohmann::json SNAPSHOT): SNAPSHOT_(std::move(SNAPSHOT)), LAST_UPDATE_ID(SNAPSHOT_.at("last_update_id")) {
     extractPriceQtyTicksFromLvl(bids,SNAPSHOT_.at("snapshot").at("bids"));
@@ -17,6 +18,7 @@ void LocalOrderBook::applyUpdate(const DepthUpdate& update){
     
     extractPriceQtyTicksFromLvl(bids,update.bids);
     extractPriceQtyTicksFromLvl(asks,update.asks);
-
+    FeatureEngine featureEngine = FeatureEngine(*this);
+    featureEngine.run();
     LAST_UPDATE_ID = update.lastUpdateId;
 }
