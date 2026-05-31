@@ -35,7 +35,7 @@ void CacheService::updateSymbols(Provider provider) {
     }
 }
 
-std::unordered_map<std::string,std::unordered_set<std::string>> CacheService::readSymbolsMetadata(Provider provider) {
+SymbolToMetadata CacheService::readSymbolsMetadata(Provider provider) {
     const auto providerNameIt = kProviderToString.find(provider);
     if (providerNameIt == kProviderToString.end()) {
         throw std::runtime_error("Unknown provider for symbols cache.");
@@ -53,7 +53,7 @@ std::unordered_map<std::string,std::unordered_set<std::string>> CacheService::re
         throw std::runtime_error("Cannot open symbols cache file: " + symbolCachePath.string());
     }
 
-    std::unordered_map<std::string,std::unordered_set<std::string>> metaData;
+    SymbolToMetadata metaData;
     std::string line;
     while (std::getline(file, line)) {
 
@@ -66,17 +66,18 @@ std::unordered_map<std::string,std::unordered_set<std::string>> CacheService::re
         const std::string stepSize = line.substr(commaPosAfterTickSize,endlPos);
 
         if (!symbol.empty()) {
-            metaData[symbol] = {tickSize,stepSize};
+            metaData[symbol] = MetaData{.tickSize = std::stod(tickSize),.stepSize = std::stod(tickSize)};
         }
     }
 
     return metaData;
 }
 
-std::unordered_set<std::string> CacheService::loadOrUpdateSymbols(Provider provider) {
-    std::unordered_map<std::string,std::unordered_set<std::string>> symbolsMeta = readSymbolsMetadata(provider);
+SymbolToMetadata CacheService::loadOrUpdateSymbols(Provider provider) {
+    SymbolToMetadata symbolsMeta = readSymbolsMetadata(provider);
     if (!symbolsMeta.empty()) {
-        return symbols;
+        symbolsMetadata = std::move(symbolsMeta);
+        return symbolsMeta;
     }
 
     updateSymbols(provider);
@@ -84,13 +85,22 @@ std::unordered_set<std::string> CacheService::loadOrUpdateSymbols(Provider provi
 }
 
 bool CacheService::isSymbolValidFromCache(Provider provider, const std::string& symbol) {
-    const std::unordered_set<std::string> symbols = loadOrUpdateSymbols(provider);
+    SymbolToMetadata symbols = loadOrUpdateSymbols(provider);
     if (symbols.empty()) {
         return false;
     }
 
     const std::string normalizedSymbol = toUpper(symbol);
     return symbols.find(normalizedSymbol) != symbols.end();
+}
+
+MetaData CacheService::getMetaBySymbolOrThrow(std::string& symbol){
+    auto it = symbolsMetadata.find(symbol);
+    
+    if (it == symbolsMetadata.end()){
+        throw std::runtime_error("No existing metadata for symbol: " + symbol + "\n");
+    }
+    return it->second;
 }
 
 } // namespace oraculum

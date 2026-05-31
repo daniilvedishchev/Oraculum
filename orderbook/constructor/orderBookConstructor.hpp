@@ -19,6 +19,7 @@
 #include "orderbook/localbook/LocalOrderBook.hpp"
 #include "orderbook/features/structure/header.hpp"
 #include "orderbook/features/FeatureEngine.hpp"
+#include "cacheservice/CacheService.hpp"
 
 namespace oraculum {
     class OrderBookConstructor {
@@ -26,6 +27,7 @@ namespace oraculum {
         Config& cfg_;
         OraculumSocket& SOCKET_;
         FileManager& fm_;
+        CacheService& cache_;
 
         std::optional<FeatureEngine> featureEngine_;
 
@@ -62,7 +64,7 @@ namespace oraculum {
 
         void createDirectories();
     public:
-        OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket);
+        OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket, CacheService& cache);
         std::optional<LocalOrderBook> localBook_;
         ~OrderBookConstructor();
         nlohmann::json OrderBookSnapshotAfterFirstUpdate();

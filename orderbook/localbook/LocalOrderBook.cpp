@@ -1,6 +1,6 @@
 #include "orderbook/localbook/LocalOrderBook.hpp"
 
-LocalOrderBook::LocalOrderBook(nlohmann::json SNAPSHOT): SNAPSHOT_(std::move(SNAPSHOT)), LAST_UPDATE_ID(SNAPSHOT_.at("last_update_id")) {
+LocalOrderBook::LocalOrderBook(nlohmann::json SNAPSHOT,const double tickSize, const double stepSize): SNAPSHOT_(std::move(SNAPSHOT)), LAST_UPDATE_ID(SNAPSHOT_.at("last_update_id")),PRICE_TICKS(tickSize),QTY_TICKS(stepSize){
     extractPriceQtyTicksFromLvl(bids,SNAPSHOT_.at("snapshot").at("bids"));
     extractPriceQtyTicksFromLvl(asks,SNAPSHOT_.at("snapshot").at("asks"));
 }

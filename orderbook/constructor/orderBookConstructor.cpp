@@ -7,11 +7,12 @@ namespace oraculum{
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket) : cfg_(cfg), 
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket, CacheService& cache) : cfg_(cfg), 
                                                 DEPTH_(cfg.depth.value()), 
                                                 SYMBOL_(cfg.symbol), 
                                                 SOCKET_(socket), 
-                                                fm_(fm) {
+                                                fm_(fm),
+                                                cache_(cache) {
         
         firstUpdateReceived_= false;
         SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
@@ -127,7 +128,8 @@ namespace oraculum{
             startSocket();
 
             auto snapshot = OrderBookSnapshotAfterFirstUpdate();
-            localBook_.emplace(std::move(snapshot));
+            MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
+            localBook_.emplace(std::move(snapshot),meta.tickSize,meta.stepSize);
 
             consumerThread_ = std::thread([this]() {
                 consume();
@@ -165,7 +167,8 @@ namespace oraculum{
                 std::lock_guard<std::mutex> lock(firstUpdateMutex_);
                 firstUpdateReceived_ = false;
                 auto snap = OrderBookSnapshotAfterFirstUpdate();
-                localBook_.emplace(std::move(snap));
+                MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
+                localBook_.emplace(std::move(snap),meta.tickSize,meta.stepSize);
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());

@@ -9,8 +9,8 @@ class LocalOrderBook {
 private:
     nlohmann::json SNAPSHOT_;
 
-    const double PRICE_TICKS = 0.001;
-    const double QTY_TICKS = 0.0000001;
+    const double PRICE_TICKS;
+    const double QTY_TICKS;
 
     template<typename Compare>
     void extractPriceQtyTicksFromLvl(std::map<int64_t,int64_t,Compare>& container, const std::vector<std::vector<std::string>>& levels);
@@ -23,7 +23,7 @@ public:
 
     void applyUpdate(const DepthUpdate& update);
 
-    LocalOrderBook(nlohmann::json SNAPSHOT);
+    LocalOrderBook(nlohmann::json SNAPSHOT, const double tickSize, const double stepSize);
 };
 
 

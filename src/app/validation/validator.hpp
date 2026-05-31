@@ -18,7 +18,7 @@ namespace oraculum {
             Config& cfg_;
             CacheService& cache_;
             
-            void validateSymbolFromCacheOrThrow_(const std::string& symbol, const std::unordered_set<std::string>& symbols);
+            void validateSymbolFromCacheOrThrow_(const std::string& symbol, METADATA& symbols);
             void validateProviderOrThrow_(const std::string& symbol);
             void validateStreamTypeOrThrow_(const std::string& type);
             void validateDepthOrThrow_();

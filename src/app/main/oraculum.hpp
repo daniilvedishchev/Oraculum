@@ -17,6 +17,7 @@ namespace oraculum {
         Validator validator_;
 
         void writeOrderBook();
+        void setConfigMetadata();
     public:
         oraculum(int argc, char* argv[]);
         void run();

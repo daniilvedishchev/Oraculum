@@ -7,8 +7,10 @@
 
 #include "providers/providers.hpp"
 
+struct MetaData;
 namespace oraculum {
 
 using RuleValue = std::variant<bool, double, int, std::string, Provider>;
-using METADATA = std::unordered_map<std::string,std::unordered_set<std::string>>;
+using SymbolToMetadata = std::unordered_map<std::string,MetaData>;
+using Metadata = std::unordered_set<std::string>;
 }

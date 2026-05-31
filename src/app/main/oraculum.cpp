@@ -19,7 +19,7 @@ namespace oraculum {
         std::cout << url << std::endl;
         try {
             OraculumSocket socket = OraculumSocket(cfg_.provider,url);
-            OrderBookConstructor orderBook(cfg_, fm_, socket);
+            OrderBookConstructor orderBook(cfg_, fm_, socket, cache_);
             orderBook.start();
             while (true) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));

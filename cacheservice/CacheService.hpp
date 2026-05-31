@@ -12,20 +12,25 @@
 #include "datasrc/resolvers/providerResolver.hpp"
 #include "connector/retry/retry.hpp"
 #include "utils/utils.hpp"
+#include "namespace/namespace.hpp"
+#include "cacheservice/meta/metadata.hpp"
 
 namespace oraculum {
 
 class CacheService {
 private:
     FileManager& fileManager_;
+    SymbolToMetadata symbolsMetadata;
 public:
     explicit CacheService(FileManager& fileManager);
 
     void updateSymbols(Provider provider);
     bool isSymbolValidFromCache(Provider provider, const std::string& symbol);
 
-    std::unordered_map<std::string,std::unordered_set<std::string>> readSymbolsMetadata(Provider provider);
-    std::unordered_map<std::string,std::unordered_set<std::string>> loadOrUpdateSymbols(Provider provider);
+    SymbolToMetadata readSymbolsMetadata(Provider provider);
+    SymbolToMetadata loadOrUpdateSymbols(Provider provider);
+
+    MetaData getMetaBySymbolOrThrow(std::string& symbol);
 };
 
 } // namespace oraculum
