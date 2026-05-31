@@ -17,6 +17,8 @@
 #include "filemanager/fileManager.hpp"
 #include "socket/oraculumSocket/oraculumSocket.hpp"
 #include "orderbook/localbook/LocalOrderBook.hpp"
+#include "orderbook/features/structure/header.hpp"
+#include "orderbook/features/FeatureEngine.hpp"
 
 namespace oraculum {
     class OrderBookConstructor {
@@ -24,6 +26,8 @@ namespace oraculum {
         Config& cfg_;
         OraculumSocket& SOCKET_;
         FileManager& fm_;
+
+        std::optional<FeatureEngine> featureEngine_;
 
         std::string DEPTH_;
         std::string SYMBOL_;
@@ -42,6 +46,7 @@ namespace oraculum {
 
         FileHandle UPDATES_;
         FileHandle SNAPSHOT_;
+        FileHandle FEATURES_;
 
         std::atomic<bool> running_{false};
         std::thread consumerThread_;

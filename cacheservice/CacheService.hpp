@@ -24,8 +24,8 @@ public:
     void updateSymbols(Provider provider);
     bool isSymbolValidFromCache(Provider provider, const std::string& symbol);
 
-    std::unordered_set<std::string> readSymbols(Provider provider);
-    std::unordered_set<std::string> loadOrUpdateSymbols(Provider provider);
+    std::unordered_map<std::string,std::unordered_set<std::string>> readSymbolsMetadata(Provider provider);
+    std::unordered_map<std::string,std::unordered_set<std::string>> loadOrUpdateSymbols(Provider provider);
 };
 
 } // namespace oraculum

@@ -22,6 +22,12 @@ namespace oraculum{
         createDirectories();
 
         UPDATES_ = fm.createFile(UPDATES_PATH__.string());
+        if (cfg_.features) {
+            auto FEATURES_DIR = fm.environmentPath() / cfg.symbol / "features";
+            std::filesystem::create_directories(FEATURES_DIR);
+            FEATURES_ = fm.createFile(FEATURES_DIR/"features.csv");
+            FEATURES_.writeLine(featureStructure);
+        }
         
     }
 
@@ -163,6 +169,10 @@ namespace oraculum{
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());
+                featureEngine_.emplace(*localBook_);
+                const auto row = featureEngine_->compute();
+                std::string featureRow = featureEngine_->toCsv(row);
+                FEATURES_.writeLine(featureRow);
                 UPDATES_.writeLine(update->raw);
             }
         }

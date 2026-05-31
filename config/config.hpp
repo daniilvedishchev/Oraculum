@@ -15,5 +15,6 @@ namespace oraculum {
         std::optional<std::string> speed;
 
         bool writeLiveData = false;
+        bool features = true;
     };
 }

@@ -22,51 +22,65 @@ void CacheService::updateSymbols(Provider provider) {
     std::string url = buildUrl(provider,Connection::Symbols,"");
     const cpr::Response response = requestRetryOrThrow(url);
 
-    FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbols", true);
+    FileHandle fileHandle = fileManager_.createFile("cache/" + providerName + "/symbolsMeta", true);
     const nlohmann::json data = nlohmann::json::parse(response.text);
 
     for (const auto& tradingPair : data["symbols"]) {
-        fileHandle.writeLine(tradingPair["symbol"].get<std::string>());
+        std::string cacheRow = toUpper(tradingPair["symbol"].get<std::string>()) 
+        + "," 
+        + tradingPair["filters"][0]["tickSize"].get<std::string>()
+        + ","
+        + tradingPair["filters"][1]["stepSize"].get<std::string>();
+        fileHandle.writeLine(cacheRow);
     }
 }
 
-std::unordered_set<std::string> CacheService::readSymbols(Provider provider) {
+std::unordered_map<std::string,std::unordered_set<std::string>> CacheService::readSymbolsMetadata(Provider provider) {
     const auto providerNameIt = kProviderToString.find(provider);
     if (providerNameIt == kProviderToString.end()) {
         throw std::runtime_error("Unknown provider for symbols cache.");
     }
 
     const std::filesystem::path symbolCachePath =
-        fileManager_.environmentPath() / "cache" / providerNameIt->second / "symbols";
+        fileManager_.environmentPath() / "cache" / providerNameIt->second / "symbolsMeta";
 
     if (!std::filesystem::exists(symbolCachePath)) {
         return {};
     }
 
-    std::ifstream in(symbolCachePath);
-    if (!in) {
+    std::ifstream file(symbolCachePath);
+    if (!file) {
         throw std::runtime_error("Cannot open symbols cache file: " + symbolCachePath.string());
     }
 
-    std::unordered_set<std::string> symbols;
-    std::string symbol;
-    while (std::getline(in, symbol)) {
+    std::unordered_map<std::string,std::unordered_set<std::string>> metaData;
+    std::string line;
+    while (std::getline(file, line)) {
+
+        const auto commaPosAfterSymbol = line.find(',');
+        const auto commaPosAfterTickSize = line.find(',',commaPosAfterSymbol+1);
+        const auto endlPos = line.find("\n");
+
+        const std::string symbol = (commaPosAfterSymbol == std::string::npos) ? line : line.substr(0, commaPosAfterSymbol);
+        const std::string tickSize = line.substr(commaPosAfterSymbol,commaPosAfterTickSize);
+        const std::string stepSize = line.substr(commaPosAfterTickSize,endlPos);
+
         if (!symbol.empty()) {
-            symbols.insert(symbol);
+            metaData[symbol] = {tickSize,stepSize};
         }
     }
 
-    return symbols;
+    return metaData;
 }
 
 std::unordered_set<std::string> CacheService::loadOrUpdateSymbols(Provider provider) {
-    std::unordered_set<std::string> symbols = readSymbols(provider);
-    if (!symbols.empty()) {
+    std::unordered_map<std::string,std::unordered_set<std::string>> symbolsMeta = readSymbolsMetadata(provider);
+    if (!symbolsMeta.empty()) {
         return symbols;
     }
 
     updateSymbols(provider);
-    return readSymbols(provider);
+    return readSymbolsMetadata(provider);
 }
 
 bool CacheService::isSymbolValidFromCache(Provider provider, const std::string& symbol) {
