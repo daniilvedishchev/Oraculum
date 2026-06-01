@@ -17,12 +17,12 @@ private:
 
     int64_t bestAsk();
     int64_t bestBid();
-    int64_t mid();
     int64_t spread_ticks();
     int64_t timestampSinceUNIX();
 
     double microprice_l1();
     double relative_microprice();
+    double mid();
 public:
     FeatureEngine(LocalOrderBook& orderbook);
     void run();

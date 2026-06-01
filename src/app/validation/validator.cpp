@@ -2,7 +2,7 @@
 
 namespace oraculum {
     Validator::Validator(Config& cfg, CacheService& cache) : cfg_(cfg), cache_(cache) {}
-    void Validator::validateSymbolFromCacheOrThrow_(const std::string& symbol, METADATA& symbols) {
+    void Validator::validateSymbolFromCacheOrThrow_(const std::string& symbol, SymbolToMetadata& symbols) {
         if (symbols.empty()) {
             throw std::runtime_error("Symbols cache is empty. Cannot validate symbol.");
         }
@@ -47,7 +47,8 @@ namespace oraculum {
 
     void Validator::validate(){
         validateProviderOrThrow_(cfg_.provider);
-        METADATA symbols = cache_.loadOrUpdateSymbols(resolveProviderOrThrow(cfg_.provider));
+        SymbolToMetadata symbols = cache_.loadOrUpdateSymbols(resolveProviderOrThrow(cfg_.provider));
+        std::cout<<"Symbols len: "<< symbols.size()<< std::endl;
         validateSymbolFromCacheOrThrow_(cfg_.symbol,symbols);
         validateStreamTypeOrThrow_(cfg_.type);
         validateDepthOrThrow_();

@@ -6,10 +6,10 @@ struct FeatureRow {
     int64_t spread_ticks;
     int64_t best_ask;
     int64_t best_bid;
-    int64_t mid;
 
+    double mid;
     double microprice_l1;
-    double relative_microprice;
+    double relative_microprice_bps;
 
     double imb_10;
     double imb_20;

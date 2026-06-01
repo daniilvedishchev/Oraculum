@@ -26,8 +26,8 @@ int64_t FeatureEngine::bestBid(){
     return orderbook_.bids.begin()->first;
 }
 
-int64_t FeatureEngine::mid(){
-    return std::floor((bestAsk()+bestBid())/2.0);
+double FeatureEngine::mid(){
+    return static_cast<double>(bestAsk()+bestBid())/2.0;
 }
 
 int64_t FeatureEngine::spread_ticks(){
@@ -35,7 +35,9 @@ int64_t FeatureEngine::spread_ticks(){
 }
 
 double FeatureEngine::microprice_l1(){
-    return (bestBid()*orderbook_.bids.begin()->second + bestAsk()*orderbook_.asks.begin()->second)/(orderbook_.asks.begin()->second+orderbook_.bids.begin()->second);
+    int64_t askQty = orderbook_.asks.begin()->second;
+    int64_t bidQty = orderbook_.bids.begin()->second;
+    return static_cast<double>(bestBid()*bidQty + bestAsk()*askQty)/static_cast<double>(bidQty+askQty);
 }
 
 double FeatureEngine::relative_microprice(){
@@ -131,7 +133,7 @@ FeatureRow FeatureEngine::compute(){
         .best_bid = bestBid(),
         .mid = mid(),
         .microprice_l1 = microprice_l1(),
-        .relative_microprice = relative_microprice(),
+        .relative_microprice_bps = relative_microprice() * 10000,
         .imb_10 = getOrZero(nImbalanceArray, 10),
         .imb_20 = getOrZero(nImbalanceArray, 20),
         .imb_50 = getOrZero(nImbalanceArray, 50),
@@ -158,7 +160,7 @@ std::string FeatureEngine::toCsv(const FeatureRow& r) {
         << r.best_bid << ','
         << r.mid << ','
         << r.microprice_l1 << ','
-        << r.relative_microprice << ','
+        << r.relative_microprice_bps << ','
         << r.imb_10 << ',' << r.imb_20 << ',' << r.imb_50 << ','
         << r.imb_100 << ',' << r.imb_200 << ',' << r.imb_500 << ',' << r.imb_1000 << ','
         << r.imb_1bps << ',' << r.imb_2bps << ',' << r.imb_5bps << ','

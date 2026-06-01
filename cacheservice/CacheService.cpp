@@ -62,11 +62,13 @@ SymbolToMetadata CacheService::readSymbolsMetadata(Provider provider) {
         const auto endlPos = line.find("\n");
 
         const std::string symbol = (commaPosAfterSymbol == std::string::npos) ? line : line.substr(0, commaPosAfterSymbol);
-        const std::string tickSize = line.substr(commaPosAfterSymbol,commaPosAfterTickSize);
-        const std::string stepSize = line.substr(commaPosAfterTickSize,endlPos);
 
+        const std::string tickSize = line.substr(commaPosAfterSymbol + 1,(commaPosAfterTickSize - (commaPosAfterSymbol+1)));
+        const std::string stepSize = line.substr(commaPosAfterTickSize + 1);
+
+        std::cout<<"Symbol: " << symbol << " Tick Size: " << tickSize << " Step Size: " << stepSize << std::endl;
         if (!symbol.empty()) {
-            metaData[symbol] = MetaData{.tickSize = std::stod(tickSize),.stepSize = std::stod(tickSize)};
+            metaData[symbol] = MetaData{.tickSize = std::stod(tickSize),.stepSize = std::stod(stepSize)};
         }
     }
 
@@ -74,14 +76,14 @@ SymbolToMetadata CacheService::readSymbolsMetadata(Provider provider) {
 }
 
 SymbolToMetadata CacheService::loadOrUpdateSymbols(Provider provider) {
-    SymbolToMetadata symbolsMeta = readSymbolsMetadata(provider);
-    if (!symbolsMeta.empty()) {
-        symbolsMetadata = std::move(symbolsMeta);
-        return symbolsMeta;
+    symbolsMetadata = readSymbolsMetadata(provider);
+    if (!symbolsMetadata.empty()) {
+        return symbolsMetadata;
     }
 
     updateSymbols(provider);
-    return readSymbolsMetadata(provider);
+    symbolsMetadata = readSymbolsMetadata(provider);
+    return symbolsMetadata;
 }
 
 bool CacheService::isSymbolValidFromCache(Provider provider, const std::string& symbol) {
@@ -95,8 +97,8 @@ bool CacheService::isSymbolValidFromCache(Provider provider, const std::string& 
 }
 
 MetaData CacheService::getMetaBySymbolOrThrow(std::string& symbol){
-    auto it = symbolsMetadata.find(symbol);
-    
+    auto it = symbolsMetadata.find(toUpper(symbol));
+
     if (it == symbolsMetadata.end()){
         throw std::runtime_error("No existing metadata for symbol: " + symbol + "\n");
     }
