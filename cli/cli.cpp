@@ -1,5 +1,7 @@
 #include "cli/cli.hpp"
 
+#include <stdexcept>
+
 namespace oraculum {
     CLI::CLI(int argc, char* argv[]): cliArgs_(argv), cliSize_(argc){}
 

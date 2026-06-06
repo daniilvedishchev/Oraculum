@@ -27,7 +27,7 @@ namespace oraculum{
         if (FEATURES_ON) {
             auto FEATURES_DIR = fm.environmentPath() / cfg.symbol / "features";
             std::filesystem::create_directories(FEATURES_DIR);
-            FEATURES_ = fm.createFile(FEATURES_DIR/"features.csv");
+            FEATURES_ = fm.createFile((FEATURES_DIR / "features.csv").string());
             FEATURES_.writeLine(featureStructure);
         }
         
