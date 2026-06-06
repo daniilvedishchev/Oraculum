@@ -25,6 +25,7 @@ if(APPLE)
 
 elseif(WIN32)
     message(STATUS "Building on Windows")
+    set(USE_ZLIB OFF CACHE BOOL "Disable IXWebSocket zlib support on Windows" FORCE)
 
 elseif(UNIX)
     message(STATUS "Building on Linux/Unix")
