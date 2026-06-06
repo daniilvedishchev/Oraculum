@@ -31,6 +31,7 @@ jobs:
             -DOPENSSL_INCLUDE_DIR="$opensslRoot/include" `
             -DOPENSSL_SSL_LIBRARY="$opensslRoot/lib/VC/x64/MD/libssl.lib" `
             -DOPENSSL_CRYPTO_LIBRARY="$opensslRoot/lib/VC/x64/MD/libcrypto.lib" `
+            -DCPR_CURL_USE_LIBPSL=OFF `
             -DCPR_BUILD_TESTS=OFF `
             -DCPR_BUILD_TESTS_SSL=OFF
 
