@@ -90,14 +90,14 @@ namespace oraculum{
                 firstUpdateCv_.notify_all();
             }
 
-            return DepthUpdate {    
-                .firstUpdateId = message.at("U").get<long long>(), 
-                .lastUpdateId = message.at("u").get<long long>(),
-                .lastUpdateTs = message.at("E").get<long long>(),
-                .bids = message.at("b").get<std::vector<std::vector<std::string>>>(),
-                .asks = message.at("a").get<std::vector<std::vector<std::string>>>(),
-                .raw = msg->str
-            };
+            DepthUpdate update;
+            update.raw = msg->str;
+            update.firstUpdateId = message.at("U").get<long long>();
+            update.lastUpdateId = message.at("u").get<long long>();
+            update.lastUpdateTs = message.at("E").get<long long>();
+            update.bids = message.at("b").get<std::vector<std::vector<std::string>>>();
+            update.asks = message.at("a").get<std::vector<std::vector<std::string>>>();
+            return update;
         }
     }
 

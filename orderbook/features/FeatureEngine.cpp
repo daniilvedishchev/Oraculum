@@ -1,5 +1,7 @@
 #include "orderbook/features/FeatureEngine.hpp"
 
+#include <algorithm>
+
 namespace {
 double getOrZero(const std::unordered_map<int32_t, double>& values, int32_t key) {
     const auto it = values.find(key);
@@ -123,30 +125,29 @@ FeatureRow FeatureEngine::makeFeatureRow(DepthUpdate& update){
     auto nImbalanceArray = nImbalance(nDepth);
     auto xBpsImbalanceArray = xBpsImbalance(xBps);
 
-    FeatureRow row = FeatureRow{
-        .ts_local_ms = timestampSinceUNIX(),
-        .ts_provider_ms = update.lastUpdateTs,
-        .spread_ticks = spread_ticks(),
-        .best_ask = bestAsk(),
-        .best_bid = bestBid(),
-        .mid = mid(),
-        .microprice_l1 = microprice_l1(),
-        .relative_microprice_bps = relative_microprice() * 10000,
-        .imb_10 = getOrZero(nImbalanceArray, 10),
-        .imb_20 = getOrZero(nImbalanceArray, 20),
-        .imb_50 = getOrZero(nImbalanceArray, 50),
-        .imb_100 = getOrZero(nImbalanceArray, 100),
-        .imb_200 = getOrZero(nImbalanceArray, 200),
-        .imb_500 = getOrZero(nImbalanceArray, 500),
-        .imb_1000 = getOrZero(nImbalanceArray, 1000),
-        .imb_1bps = getOrZero(xBpsImbalanceArray, 1),
-        .imb_2bps = getOrZero(xBpsImbalanceArray, 2),
-        .imb_5bps = getOrZero(xBpsImbalanceArray, 5),
-        .imb_10bps = getOrZero(xBpsImbalanceArray, 10),
-        .imb_20bps = getOrZero(xBpsImbalanceArray, 20),
-        .imb_50bps = getOrZero(xBpsImbalanceArray, 50),
-        .imb_100bps = getOrZero(xBpsImbalanceArray, 100)
-    };
+    FeatureRow row;
+    row.ts_local_ms = timestampSinceUNIX();
+    row.ts_provider_ms = update.lastUpdateTs;
+    row.spread_ticks = spread_ticks();
+    row.best_ask = bestAsk();
+    row.best_bid = bestBid();
+    row.mid = mid();
+    row.microprice_l1 = microprice_l1();
+    row.relative_microprice_bps = relative_microprice() * 10000;
+    row.imb_10 = getOrZero(nImbalanceArray, 10);
+    row.imb_20 = getOrZero(nImbalanceArray, 20);
+    row.imb_50 = getOrZero(nImbalanceArray, 50);
+    row.imb_100 = getOrZero(nImbalanceArray, 100);
+    row.imb_200 = getOrZero(nImbalanceArray, 200);
+    row.imb_500 = getOrZero(nImbalanceArray, 500);
+    row.imb_1000 = getOrZero(nImbalanceArray, 1000);
+    row.imb_1bps = getOrZero(xBpsImbalanceArray, 1);
+    row.imb_2bps = getOrZero(xBpsImbalanceArray, 2);
+    row.imb_5bps = getOrZero(xBpsImbalanceArray, 5);
+    row.imb_10bps = getOrZero(xBpsImbalanceArray, 10);
+    row.imb_20bps = getOrZero(xBpsImbalanceArray, 20);
+    row.imb_50bps = getOrZero(xBpsImbalanceArray, 50);
+    row.imb_100bps = getOrZero(xBpsImbalanceArray, 100);
     return row;
 }
 

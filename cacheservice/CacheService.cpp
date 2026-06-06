@@ -68,7 +68,10 @@ SymbolToMetadata CacheService::readSymbolsMetadata(Provider provider) {
 
         std::cout<<"Symbol: " << symbol << " Tick Size: " << tickSize << " Step Size: " << stepSize << std::endl;
         if (!symbol.empty()) {
-            metaData[symbol] = MetaData{.tickSize = std::stod(tickSize),.stepSize = std::stod(stepSize)};
+            MetaData symbolMeta;
+            symbolMeta.tickSize = std::stod(tickSize);
+            symbolMeta.stepSize = std::stod(stepSize);
+            metaData[symbol] = symbolMeta;
         }
     }
 
