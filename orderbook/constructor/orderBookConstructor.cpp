@@ -131,6 +131,7 @@ namespace oraculum{
             auto snapshot = OrderBookSnapshotAfterFirstUpdate();
             MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
             localBook_.emplace(std::move(snapshot),meta.tickSize,meta.stepSize);
+            featureEngine_.emplace(*localBook_,FEATURES_);
 
             consumerThread_ = std::thread([this]() {
                 consume();
@@ -162,21 +163,21 @@ namespace oraculum{
     void OrderBookConstructor::consume(){
         while (running_){
             auto update = SOCKET_.orderBookUpdateBuffer_.pop();
+            bool needResync = update.value().firstUpdateId > localBook_->LAST_UPDATE_ID + 1;
+            bool oldUpdate = update.value().lastUpdateId <= localBook_->LAST_UPDATE_ID;
             if (!update) break;
-            else if (update.value().lastUpdateId <= localBook_->LAST_UPDATE_ID) continue;
-            else if (update.value().firstUpdateId > localBook_->LAST_UPDATE_ID + 1){
+            else if (oldUpdate) continue;
+            else if (needResync){
                 std::lock_guard<std::mutex> lock(firstUpdateMutex_);
                 firstUpdateReceived_ = false;
                 auto snap = OrderBookSnapshotAfterFirstUpdate();
                 MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
                 localBook_.emplace(std::move(snap),meta.tickSize,meta.stepSize);
+                featureEngine_.emplace(*localBook_,FEATURES_);
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());
-                featureEngine_.emplace(*localBook_,update.value());
-                const auto row = featureEngine_->compute();
-                std::string featureRow = featureEngine_->toCsv(row);
-                FEATURES_.writeLine(featureRow);
+                featureEngine_.value().features_1s(update.value());
                 UPDATES_.writeLine(update->raw);
             }
         }

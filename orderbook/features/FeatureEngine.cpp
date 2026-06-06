@@ -7,7 +7,9 @@ double getOrZero(const std::unordered_map<int32_t, double>& values, int32_t key)
 }
 } // namespace
 
-FeatureEngine::FeatureEngine(LocalOrderBook& orderbook, DepthUpdate& update): orderbook_(orderbook), update_(update) {}
+FeatureEngine::FeatureEngine(LocalOrderBook& orderbook, oraculum::FileHandle& features): orderbook_(orderbook), features_(features){
+    active_second = -1;
+}
 
 int64_t FeatureEngine::timestampSinceUNIX(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -118,12 +120,13 @@ std::unordered_map<int32_t,double> FeatureEngine::nImbalance(std::vector<int32_t
     return nLevelImbalance;
 }
 
-FeatureRow FeatureEngine::compute(){
+FeatureRow FeatureEngine::makeFeatureRow(DepthUpdate& update){
     auto nImbalanceArray = nImbalance(nDepth);
     auto xBpsImbalanceArray = xBpsImbalance(xBps);
+
     FeatureRow row = FeatureRow{
         .ts_local_ms = timestampSinceUNIX(),
-        .ts_provider_ms = update_.lastUpdateTs,
+        .ts_provider_ms = update.lastUpdateTs,
         .spread_ticks = spread_ticks(),
         .best_ask = bestAsk(),
         .best_bid = bestBid(),
@@ -146,6 +149,25 @@ FeatureRow FeatureEngine::compute(){
         .imb_100bps = getOrZero(xBpsImbalanceArray, 100)
     };
     return row;
+}
+
+void FeatureEngine::features_1s(DepthUpdate& update){
+    int64_t update_second = update.lastUpdateTs/MS_TO_SECONDS;
+    if (active_second < 0) {
+        active_second = update_second;
+        point_second = makeFeatureRow(update);
+        return;
+    }
+
+    if (active_second == update_second){
+        point_second = makeFeatureRow(update);
+    }
+
+    if (update_second>active_second){
+        features_.writeLine(toCsv(point_second));
+        point_second = makeFeatureRow(update);
+        active_second = update_second;
+    }
 }
 
 std::string FeatureEngine::toCsv(const FeatureRow& r) {
