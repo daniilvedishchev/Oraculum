@@ -1,0 +1,5 @@
+#pragma once
+
+#define MS_TO_MINUTES 60000
+#define MS_TO_HOURS MS_TO_MINUTES*60
+#define MS_TO_DAYS MS_TO_HOURS*24

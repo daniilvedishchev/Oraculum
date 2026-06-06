@@ -92,6 +92,7 @@ namespace oraculum{
             return DepthUpdate {    
                 .firstUpdateId = message.at("U").get<long long>(), 
                 .lastUpdateId = message.at("u").get<long long>(),
+                .lastUpdateTs = message.at("E").get<long long>(),
                 .bids = message.at("b").get<std::vector<std::vector<std::string>>>(),
                 .asks = message.at("a").get<std::vector<std::vector<std::string>>>(),
                 .raw = msg->str
@@ -172,7 +173,7 @@ namespace oraculum{
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());
-                featureEngine_.emplace(*localBook_);
+                featureEngine_.emplace(*localBook_,update.value());
                 const auto row = featureEngine_->compute();
                 std::string featureRow = featureEngine_->toCsv(row);
                 FEATURES_.writeLine(featureRow);

@@ -3,6 +3,7 @@
 
 struct FeatureRow {
     int64_t ts_local_ms;
+    int64_t ts_provider_ms;
     int64_t spread_ticks;
     int64_t best_ask;
     int64_t best_bid;

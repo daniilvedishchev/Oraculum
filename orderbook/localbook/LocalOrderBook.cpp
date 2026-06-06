@@ -15,4 +15,5 @@ void LocalOrderBook::applyUpdate(const DepthUpdate& update){
     extractPriceQtyTicksFromLvl(bids,update.bids);
     extractPriceQtyTicksFromLvl(asks,update.asks);
     LAST_UPDATE_ID = update.lastUpdateId;
+    LAST_UPDATE_TS = update.lastUpdateTs;
 }

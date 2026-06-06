@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cstdint>
 #include <sstream>
+
+#include "orderbook/depth/depthUpdate.hpp"
 #include "orderbook/localbook/LocalOrderBook.hpp"
 #include "orderbook/features/structure/featureStructure.hpp"
 #include "orderbook/features/structure/xBps.hpp"
@@ -11,6 +13,7 @@
 class FeatureEngine {
 private:
     LocalOrderBook& orderbook_;
+    DepthUpdate& update_;
 
     std::unordered_map<int32_t,double> nImbalance(std::vector<int32_t>& ns);
     std::unordered_map<int32_t,double> xBpsImbalance(std::vector<int32_t>& bps);
@@ -24,8 +27,7 @@ private:
     double relative_microprice();
     double mid();
 public:
-    FeatureEngine(LocalOrderBook& orderbook);
-    void run();
+    FeatureEngine(LocalOrderBook& orderbook, DepthUpdate& update);
     FeatureRow compute();
     std::string toCsv(const FeatureRow& r);
 };

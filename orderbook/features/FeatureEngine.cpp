@@ -7,15 +7,10 @@ double getOrZero(const std::unordered_map<int32_t, double>& values, int32_t key)
 }
 } // namespace
 
-FeatureEngine::FeatureEngine(LocalOrderBook& orderbook): orderbook_(orderbook) {}
+FeatureEngine::FeatureEngine(LocalOrderBook& orderbook, DepthUpdate& update): orderbook_(orderbook), update_(update) {}
 
 int64_t FeatureEngine::timestampSinceUNIX(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
-void FeatureEngine::run(){
-    std::vector<int32_t> ns = {1,5,20,50,100,1000};
-    auto depthImbalanceMap = nImbalance(ns);
 }
 
 int64_t FeatureEngine::bestAsk(){
@@ -128,6 +123,7 @@ FeatureRow FeatureEngine::compute(){
     auto xBpsImbalanceArray = xBpsImbalance(xBps);
     FeatureRow row = FeatureRow{
         .ts_local_ms = timestampSinceUNIX(),
+        .ts_provider_ms = update_.lastUpdateTs,
         .spread_ticks = spread_ticks(),
         .best_ask = bestAsk(),
         .best_bid = bestBid(),
@@ -147,7 +143,7 @@ FeatureRow FeatureEngine::compute(){
         .imb_10bps = getOrZero(xBpsImbalanceArray, 10),
         .imb_20bps = getOrZero(xBpsImbalanceArray, 20),
         .imb_50bps = getOrZero(xBpsImbalanceArray, 50),
-        .imb_100bps = getOrZero(xBpsImbalanceArray, 100),
+        .imb_100bps = getOrZero(xBpsImbalanceArray, 100)
     };
     return row;
 }
@@ -155,6 +151,8 @@ FeatureRow FeatureEngine::compute(){
 std::string FeatureEngine::toCsv(const FeatureRow& r) {
     std::ostringstream oss;
     oss << r.ts_local_ms << ','
+        << r.ts_provider_ms << ','
+        << r.ts_local_ms - r.ts_provider_ms << ','
         << r.spread_ticks << ','
         << r.best_ask << ','
         << r.best_bid << ','

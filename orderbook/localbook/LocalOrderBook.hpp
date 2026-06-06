@@ -20,6 +20,7 @@ public:
     std::map<int64_t, int64_t, std::less<>> asks;
 
     long long LAST_UPDATE_ID;
+    long long LAST_UPDATE_TS;
 
     void applyUpdate(const DepthUpdate& update);
 
