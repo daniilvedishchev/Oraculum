@@ -113,7 +113,6 @@ std::unordered_map<int32_t,double> FeatureEngine::nImbalance(std::vector<int32_t
             double imbalance = (cumSum==0) ? 0 : static_cast<double>(cumDif)/static_cast<double>(cumSum);
             nLevelImbalance[*itN] = imbalance;
             itN++;
-            std::cout<< "[Oraculum] Level: " << level << " Imbalance: " <<  imbalance <<" Timestamp: "<< timestampSinceUNIX() <<std::endl;
             if (itN == sortedNs.end()) break;
         }
     }

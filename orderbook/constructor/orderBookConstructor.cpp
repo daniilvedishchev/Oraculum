@@ -15,6 +15,7 @@ namespace oraculum{
                                                 cache_(cache) {
         
         firstUpdateReceived_= false;
+        FEATURES_ON = cfg_.features;
         SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
         UPDATES_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "updates";
 
@@ -23,7 +24,7 @@ namespace oraculum{
         createDirectories();
 
         UPDATES_ = fm.createFile(UPDATES_PATH__.string());
-        if (cfg_.features) {
+        if (FEATURES_ON) {
             auto FEATURES_DIR = fm.environmentPath() / cfg.symbol / "features";
             std::filesystem::create_directories(FEATURES_DIR);
             FEATURES_ = fm.createFile(FEATURES_DIR/"features.csv");
@@ -131,7 +132,8 @@ namespace oraculum{
             auto snapshot = OrderBookSnapshotAfterFirstUpdate();
             MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
             localBook_.emplace(std::move(snapshot),meta.tickSize,meta.stepSize);
-            featureEngine_.emplace(*localBook_,FEATURES_);
+
+            if (FEATURES_ON) featureEngine_.emplace(*localBook_,FEATURES_);
 
             consumerThread_ = std::thread([this]() {
                 consume();
@@ -163,21 +165,27 @@ namespace oraculum{
     void OrderBookConstructor::consume(){
         while (running_){
             auto update = SOCKET_.orderBookUpdateBuffer_.pop();
+            if (!update) break;
+
             bool needResync = update.value().firstUpdateId > localBook_->LAST_UPDATE_ID + 1;
             bool oldUpdate = update.value().lastUpdateId <= localBook_->LAST_UPDATE_ID;
-            if (!update) break;
-            else if (oldUpdate) continue;
+            
+            if (oldUpdate) continue;
             else if (needResync){
-                std::lock_guard<std::mutex> lock(firstUpdateMutex_);
-                firstUpdateReceived_ = false;
+                {
+                    std::lock_guard<std::mutex> lock(firstUpdateMutex_);
+                    firstUpdateReceived_ = false;
+                }
                 auto snap = OrderBookSnapshotAfterFirstUpdate();
                 MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
                 localBook_.emplace(std::move(snap),meta.tickSize,meta.stepSize);
-                featureEngine_.emplace(*localBook_,FEATURES_);
+
+                if (FEATURES_ON) featureEngine_.emplace(*localBook_,FEATURES_);
+
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());
-                featureEngine_.value().features_1s(update.value());
+                if (FEATURES_ON) featureEngine_.value().features_1s(update.value());
                 UPDATES_.writeLine(update->raw);
             }
         }

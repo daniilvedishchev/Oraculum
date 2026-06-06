@@ -29,6 +29,8 @@ namespace oraculum {
         FileManager& fm_;
         CacheService& cache_;
 
+        bool FEATURES_ON;
+
         std::optional<FeatureEngine> featureEngine_;
 
         std::string DEPTH_;
