@@ -154,7 +154,7 @@ namespace oraculum{
         std::cerr << "[DEBUG] stop called\n";
         running_= false;
 
-        SOCKET_.socket_.stop();
+        SOCKET_.socket_.stop(1000, "Normal closure");
         SOCKET_.orderBookUpdateBuffer_.close();
 
         if (consumerThread_.joinable()) {
