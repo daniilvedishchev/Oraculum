@@ -1,30 +1,26 @@
-#pragma once 
+#pragma once
 
-#include <string> 
-#include <filesystem>
-#include <thread>
-#include <ixwebsocket/IXWebSocket.h>
-#include <nlohmann/json.hpp>
-#include <optional>
-#include <mutex>
+#include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <mutex>
+#include <optional>
+#include <thread>
+
+#include <ixwebsocket/IXWebSocketMessage.h>
+#include <nlohmann/json.hpp>
 
 #include "config/config.hpp"
-#include "connector/builder/builder.hpp"
-#include "filemanager/registry/registry.hpp"
 #include "orderbook/depth/depthUpdate.hpp"
-#include "socket/ring/ringBuffer.hpp"
-#include "connector/retry/retry.hpp"
-#include "datasrc/endpoints/endpoints.hpp"
-#include "filemanager/fileManager.hpp"
-#include "socket/oraculumSocket/oraculumSocket.hpp"
-#include "orderbook/localbook/LocalOrderBook.hpp"
-#include "orderbook/features/structure/header.hpp"
 #include "orderbook/features/FeatureEngine.hpp"
-#include "cacheservice/CacheService.hpp"
+#include "orderbook/localbook/LocalOrderBook.hpp"
+#include "socket/oraculumSocket/oraculumSocket.hpp"
 
 namespace oraculum {
+    class CacheService;
+    class FileManager;
+    class FileRegistry;
+
     class OrderBookConstructor {
     private:
         Config& cfg_;
@@ -56,11 +52,12 @@ namespace oraculum {
 
     public:
         OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache, FileRegistry& registry);
-        std::optional<LocalOrderBook> localBook_;
         ~OrderBookConstructor();
+
+        std::optional<LocalOrderBook> localBook_;
+
         nlohmann::json OrderBookSnapshotAfterFirstUpdate();
         void start();
         void stop();
     };
-
 }

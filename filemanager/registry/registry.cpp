@@ -44,7 +44,6 @@ namespace oraculum {
                 if (itHeader != marketEventToFileHeader.end()){
                     (files.*(spec.target)).writeLine(itHeader->second);
                 }
-                
             }
         }
     }

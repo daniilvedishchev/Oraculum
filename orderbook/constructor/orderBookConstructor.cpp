@@ -1,9 +1,20 @@
 #include "orderbook/constructor/orderBookConstructor.hpp"
+
+#include <chrono>
+#include <cstdint>
+#include <exception>
+#include <iostream>
+#include <mutex>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "cacheservice/CacheService.hpp"
+#include "connector/builder/builder.hpp"
+#include "connector/retry/retry.hpp"
 #include "datasrc/endpoints/endpoints.hpp"
 #include "filemanager/registry/registry.hpp"
-#include "orderbook/depth/depthUpdate.hpp"
-#include "orderbook/features/structure/header.hpp"
-#include <functional>
 
 namespace oraculum{
     std::int64_t nowMs() {
@@ -20,11 +31,6 @@ namespace oraculum{
         {
         
         firstUpdateReceived_= false;
-
-        if (FEATURES_ON) {
-
-            FEATURES_.writeLine(featuresHeader);
-        }
 
         orderBookUpdateMsgCallback = [this](const ix::WebSocketMessagePtr& msg) {
             try {
@@ -116,7 +122,7 @@ namespace oraculum{
             MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
             localBook_.emplace(std::move(snapshot),meta.tickSize,meta.stepSize);
 
-            if (FEATURES_ON) featureEngine_.emplace(*localBook_,FEATURES_);
+            if (cfg_.features) featureEngine_.emplace(*localBook_,registry_.files.features);
 
             consumerThread_ = std::thread([this]() {
                 consume();
@@ -162,13 +168,13 @@ namespace oraculum{
                 auto snap = OrderBookSnapshotAfterFirstUpdate(); 
                 localBook_.emplace(std::move(snap),cfg_.tickSize,cfg_.stepSize);
 
-                if (FEATURES_ON) featureEngine_.emplace(*localBook_,FEATURES_);
+                if (cfg_.features) featureEngine_.emplace(*localBook_,registry_.files.features);
 
                 continue;
             } else {
                 localBook_->applyUpdate(update.value());
-                if (FEATURES_ON) featureEngine_.value().features_1s(update.value());
-                UPDATES_.writeLine(update->raw);
+                if (cfg_.features) featureEngine_.value().features_1s(update.value());
+                registry_.files.features.writeLine(update->raw);
             }
         }
     }

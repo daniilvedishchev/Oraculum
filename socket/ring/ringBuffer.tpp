@@ -1,3 +1,4 @@
+#pragma once 
 #include "socket/ring/ringBuffer.hpp"
 
 namespace oraculum {
