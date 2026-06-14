@@ -1,6 +1,7 @@
 #include "socket/oraculumSocket/oraculumSocket.hpp"
 
 #include "orderbook/depth/depthUpdate.hpp"
+#include "trades/liquidations/liquidations.hpp"
 #include "trades/structure/trades.h"
 
 namespace oraculum {
@@ -13,4 +14,5 @@ namespace oraculum {
 
     template class OraculumSocket<DepthUpdate>;
     template class OraculumSocket<AggregateTrade>;
+    template class OraculumSocket<Liquidation>;
 }

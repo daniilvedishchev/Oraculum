@@ -50,6 +50,7 @@ add_executable(ORACULUM
     socket/oraculumSocket/oraculumSocket.cpp
     socket/callbacks/callback.cpp
     trades/aggregated/aggregateTradesStream.cpp
+    trades/liquidations/liquidationsStream.cpp
 
 )
 

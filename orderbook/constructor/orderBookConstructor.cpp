@@ -34,10 +34,12 @@ namespace oraculum{
 
         orderBookUpdateMsgCallback = [this](const ix::WebSocketMessagePtr& msg) {
             try {
-                if (auto upd = getOrderBookUpdate(msg)) {
-                    bool ok = socket_.value().buffer_.push(std::move(*upd));
-                    if (!ok) {
-                        std::cerr << "Buffer overflow, missed updates.";
+                if (msg->type == ix::WebSocketMessageType::Message) {
+                    if (auto upd = getOrderBookUpdate(msg)) {
+                        bool ok = socket_.value().buffer_.push(std::move(*upd));
+                        if (!ok) {
+                            std::cerr << "Buffer overflow, missed updates.";
+                        }
                     }
                 }
             } catch (const std::exception& e) {
@@ -100,19 +102,11 @@ namespace oraculum{
     }
 
     void OrderBookConstructor::startSocket(){
-        socket_.value().socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
-            if (msg->type == ix::WebSocketMessageType::Error){
-                std::cerr << "Error connecting to websocket: " << msg->errorInfo.reason << std::endl;
-                return ;
-            }
-            if (msg->type == ix::WebSocketMessageType::Message){
-                
-            }
-        });
         socket_.value().socket_.start();
     }
 
     void OrderBookConstructor::start(){
+        std::cout<<"[ORACULUM] Starting writing orderbook data."<<std::endl;
         try {
             running_ = true;
 
@@ -174,7 +168,7 @@ namespace oraculum{
             } else {
                 localBook_->applyUpdate(update.value());
                 if (cfg_.features) featureEngine_.value().features_1s(update.value());
-                registry_.files.features.writeLine(update->raw);
+                registry_.files.updates.writeLine(update->raw);
             }
         }
     }

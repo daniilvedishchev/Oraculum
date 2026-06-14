@@ -66,7 +66,6 @@ SymbolToMetadata CacheService::readSymbolsMetadata(Provider provider) {
         const std::string tickSize = line.substr(commaPosAfterSymbol + 1,(commaPosAfterTickSize - (commaPosAfterSymbol+1)));
         const std::string stepSize = line.substr(commaPosAfterTickSize + 1);
 
-        std::cout<<"Symbol: " << symbol << " Tick Size: " << tickSize << " Step Size: " << stepSize << std::endl;
         if (!symbol.empty()) {
             MetaData symbolMeta;
             symbolMeta.tickSize = std::stod(tickSize);

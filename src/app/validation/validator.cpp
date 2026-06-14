@@ -1,4 +1,5 @@
 #include "src/app/validation/validator.hpp"
+#include <stdexcept>
 
 namespace oraculum {
     Validator::Validator(Config& cfg, CacheService& cache) : cfg_(cfg), cache_(cache) {}
@@ -42,17 +43,18 @@ namespace oraculum {
             if (level.find(cfg_.depth.value()) == level.end()){
                 throw std::runtime_error("Incorrect depth level, check user guide for supported ones.");
             }
+            if (!cfg_.orderbook){
+                throw std::runtime_error("Keyword 'd' is used without 'orderbook' one.");
+            }
         }
     }
 
     void Validator::validate(){
         validateProviderOrThrow_(cfg_.provider);
         SymbolToMetadata symbols = cache_.loadOrUpdateSymbols(resolveProviderOrThrow(cfg_.provider));
-        std::cout<<"Symbols len: "<< symbols.size()<< std::endl;
         validateSymbolFromCacheOrThrow_(cfg_.symbol,symbols);
-        validateStreamTypeOrThrow_(cfg_.type);
+        // validateStreamTypeOrThrow_(cfg_.type);
         validateDepthOrThrow_();
         validateTimeFrameOrThrow_();
-
     }
 }

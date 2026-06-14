@@ -1,4 +1,5 @@
 #include "cli/cli.hpp"
+#include "keywords/keywords.hpp"
 
 #include <stdexcept>
 
@@ -17,9 +18,24 @@ namespace oraculum {
             }
 
             switch (keywordIt->second) {
-                case Keyword::WriteLiveData:
-                    cfg.writeLiveData = true;
+                case Keyword::OrderBook:
+                    cfg.orderbook = true;
+                    cfg.snapshots = true;
+                    cfg.updates = true;
+                    cfg.type = "depth";
                     break;
+                case Keyword::AggregatedTrades:
+                    cfg.aggTrades = true;
+                    break;
+                case Keyword::Liquidations:
+                    cfg.liquidations = true;
+                    break;
+                case Keyword::Features:
+                    if (!cfg.orderbook){
+                        throw std::runtime_error("Impossible to calculate features without orderbook data, \
+                        please check if '-orderbook' is placed before '-features' keyword.");
+                    }
+                    cfg.features = true;
                 case Keyword::Provider:
                     if (i + 1 >= cliSize_) {
                         throw std::runtime_error("Missing value after '-provider'.");
@@ -31,12 +47,6 @@ namespace oraculum {
                         throw std::runtime_error("Missing value after '-symbol'.");
                     }
                     cfg.symbol = cliArgs_[++i];
-                    break;
-                case Keyword::Type:
-                    if (i + 1 >= cliSize_) {
-                        throw std::runtime_error("Missing value after '-type'.");
-                    }
-                    cfg.type = cliArgs_[++i];
                     break;
                 case Keyword::Speed:
                     if (i + 1 >= cliSize_) {

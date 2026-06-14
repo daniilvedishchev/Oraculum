@@ -31,9 +31,17 @@ namespace oraculum {
 
     inline std::string makeAggregateTradeEndpoint(const Config& cfg){
         if (resolveProviderOrThrow(cfg.provider) == Provider::Binance) {
-            return toLower(cfg.symbol) + "@aggTrade@100ms";
+            return toLower(cfg.symbol) + "@aggTrade";
         }
 
         throw std::runtime_error("Orderbook update not supported by this provider.");
+    }
+
+    inline std::string makeLiquidationEndpoint(const Config& cfg){
+        if (resolveProviderOrThrow(cfg.provider) == Provider::Binance) {
+            return toLower(cfg.symbol) + "@forceOrder";
+        }
+
+        throw std::runtime_error("Liquidations not supported by this provider.");
     }
 }

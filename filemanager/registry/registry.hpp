@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <iostream>
 
 #include "config/config.hpp"
 #include "filemanager/file/file.hpp"

@@ -23,6 +23,8 @@ namespace oraculum {
                 return urls.apiBaseUrl;
             case Connection::WebSocket:
                 return urls.websocketBaseUrl;
+            case Connection::FuturesMarketWebSocket:
+                return urls.futuresMarketWebSocketBaseUrl;
             case Connection::Symbols:
                 return urls.symbolsEndpoint;
         }

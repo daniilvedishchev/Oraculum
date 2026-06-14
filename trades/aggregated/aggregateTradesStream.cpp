@@ -16,7 +16,9 @@ namespace oraculum {
         status_ = Status::RUNNING;
 
         aggregateTradesMsgCallback = [this](const ix::WebSocketMessagePtr& msg) -> void {
-            socket_->buffer_.push(makeTrade(msg));
+            if (msg->type == ix::WebSocketMessageType::Message){
+                socket_->buffer_.push(makeTrade(msg));
+            }
         };
 
         socket_.emplace(cfg_.provider,
@@ -59,6 +61,8 @@ namespace oraculum {
     }
 
     void AggregateTradeStream::start(){
+        std::cout<<"[ORACULUM] Starting writing trade data."<<std::endl;
+        socket_->socket_.start();
         thread_ = std::thread([this]()->void{
             consumeTrades();
         });
@@ -66,8 +70,8 @@ namespace oraculum {
 
     void AggregateTradeStream::stop(){
         status_ = Status::STOPPED;
-        socket_.value().socket_.stop();
-        socket_.value().buffer_.close();
+        socket_->socket_.stop();
+        socket_->buffer_.close();
         if (thread_.joinable()){
             thread_.join();
         }

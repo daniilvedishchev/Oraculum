@@ -4,6 +4,7 @@ namespace oraculum {
 
 void FileHandle::writeLine(const std::string& text) {
     stream << text << "\n";
+    stream.flush();
 }
 
 } // namespace oraculum

@@ -10,6 +10,7 @@
 #include "src/app/validation/validator.hpp"
 #include "orderbook/constructor/orderBookConstructor.hpp"
 #include "trades/aggregated/aggregateTradesStream.hpp"
+#include "trades/liquidations/liquidationsStream.hpp"
 #include "filemanager/registry/registry.hpp"
 #include <optional>
 

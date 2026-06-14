@@ -16,6 +16,7 @@ namespace oraculum {
 
     std::unordered_map<std::string, std::string> marketEventToFileHeader = {
        {"aggregatedTrades", aggregatedTradesHeader},
+       {"liquidations", liquidationsHeader},
        {"features", featuresHeader}
     };
     
@@ -37,11 +38,16 @@ namespace oraculum {
             if (!spec.enabled) continue;
 
             auto path = manager_.environmentPath() / cfg_.symbol / spec.directory;
-            files.*(spec.target) = manager_.createFile(spec.filename + spec.extension, path, false);
+            const auto filepath = std::filesystem::path(path/(spec.filename+"."+spec.extension));
+
+            bool shouldWriteHeader = !std::filesystem::exists(filepath) ||
+                (std::filesystem::exists(filepath) && std::filesystem::file_size(filepath) == 0);
+
+            files.*(spec.target) = manager_.createFile(spec.filename + "." + spec.extension, path, false);
 
             if (spec.extension == "csv") {
                 auto itHeader = marketEventToFileHeader.find(spec.directory);
-                if (itHeader != marketEventToFileHeader.end()){
+                if (itHeader != marketEventToFileHeader.end() && shouldWriteHeader){
                     (files.*(spec.target)).writeLine(itHeader->second);
                 }
             }
