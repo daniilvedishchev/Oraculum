@@ -10,6 +10,7 @@
 
 #include "filemanager/file/file.hpp"
 #include "socket/oraculumSocket/oraculumSocket.hpp"
+#include "filemanager/registry/registry.hpp"
 #include "config/config.hpp"
 #include "filemanager/fileManager.hpp"
 #include "trades/structure/trades.h"
@@ -24,7 +25,7 @@ namespace oraculum {
             std::atomic<Status> status_;
             std::optional<OraculumSocket<AggregateTrade>> socket_;
             Config& cfg_;
-            FileHandle& file_;
+            FileRegistry& registry_;
             std::thread thread_;
             socketCallback aggregateTradesMsgCallback;
             AggregateTrade makeTrade(const ix::WebSocketMessagePtr& msg);
@@ -32,8 +33,8 @@ namespace oraculum {
 
             void consumeTrades();
         public:
-            AggregateTradeStream(Config& config, FileHandle& file);
-            void runAggregateTradeStream();
-            void stopAggregateTradeStream();
+            AggregateTradeStream(Config& config, FileRegistry& registry);
+            void start();
+            void stop();
     };
 }

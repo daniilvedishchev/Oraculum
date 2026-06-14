@@ -67,5 +67,4 @@ namespace oraculum {
 
         return out;
     }
-
 }

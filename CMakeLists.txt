@@ -41,6 +41,7 @@ add_executable(ORACULUM
     orderbook/features/FeatureEngine.cpp
     orderbook/localbook/LocalOrderBook.cpp
     filemanager/fileManager.cpp
+    filemanager/registry/registry.cpp
     cacheservice/CacheService.cpp
     datasrc/providers/providers.cpp
     datasrc/resolvers/providerResolver.cpp

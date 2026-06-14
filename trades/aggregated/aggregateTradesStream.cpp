@@ -3,6 +3,7 @@
 #include "datasrc/endpoints/endpoints.hpp"
 #include "datasrc/providers/baseUrl.hpp"
 #include "datasrc/resolvers/providerResolver.hpp"
+#include "filemanager/registry/registry.hpp"
 #include "ixwebsocket/IXWebSocketMessage.h"
 #include "nlohmann/json_fwd.hpp"
 #include "trades/structure/trades.h"
@@ -10,7 +11,7 @@
 #include <thread>
 
 namespace oraculum {
-    AggregateTradeStream::AggregateTradeStream(Config& config,FileHandle& file):socket_{},cfg_(config),file_(file){
+    AggregateTradeStream::AggregateTradeStream(Config& config,FileRegistry& registry):socket_{},cfg_(config),registry_(registry){
 
         status_ = Status::RUNNING;
 
@@ -41,7 +42,7 @@ namespace oraculum {
         while (status_ == Status::RUNNING){
             auto trade_from_buffer = socket_.value().buffer_.pop();
             if (trade_from_buffer){
-                file_.writeLine(tradeToCsv(trade_from_buffer.value()));
+                registry_.files.trades.writeLine(tradeToCsv(trade_from_buffer.value()));
             } else break;
         }
     }
@@ -57,13 +58,13 @@ namespace oraculum {
         return oss.str();
     }
 
-    void AggregateTradeStream::runAggregateTradeStream(){
+    void AggregateTradeStream::start(){
         thread_ = std::thread([this]()->void{
             consumeTrades();
         });
     }
 
-    void AggregateTradeStream::stopAggregateTradeStream(){
+    void AggregateTradeStream::stop(){
         status_ = Status::STOPPED;
         socket_.value().socket_.stop();
         socket_.value().buffer_.close();

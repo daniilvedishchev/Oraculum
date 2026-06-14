@@ -1,10 +1,20 @@
 #include <iostream>
+#include <thread>
 #include "src/app/main/oraculum.hpp"
 #include "cacheservice/meta/metadata.hpp"
 #include "config/config.hpp"
+#include "orderbook/constructor/orderBookConstructor.hpp"
 #include "orderbook/depth/depthUpdate.hpp"
+#include "trades/aggregated/aggregateTradesStream.hpp"
 
 namespace oraculum {
+
+    void handleSignal(int signal) {
+        if (signal == SIGINT) {
+            g_running = false;
+        }
+    }
+
     oraculum::oraculum(int argc, char* argv[]):
     cli_(CLI(argc,argv)),cfg_(cli_.parseCliArgs()),
     fm_(FileManager()),cache_(CacheService(fm_)),validator_(Validator(cfg_,cache_)){
@@ -20,37 +30,26 @@ namespace oraculum {
 
     void oraculum::run(){
         validator_.validate();
-        if (cfg_.snapshots && cfg_.updates && (cfg_.type == "depth")){
-            writeOrderBook();
-        }
-        if (cfg_.aggTrades) {
-            writeAggregatedTrades();
-        }
-        // if (cfg_.liquidations) {
-        //     return;
-        // }
-    }
 
-    void oraculum::writeAggregatedTrades(){
+        OrderBookConstructor orderbook(cfg_, fm_, cache_,registry_.value());
+        AggregateTradeStream trades(cfg_,registry_.value());
+
+
+        if (cfg_.snapshots && cfg_.updates && (cfg_.type == "depth")) orderbook.start();
+        if (cfg_.aggTrades) trades.start();
         
-    }
-
-    void oraculum::writeOrderBook(){
-        try {
-            OrderBookConstructor orderBook(cfg_, fm_, cache_);
-            orderBook.start();
-            while (true) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-            orderBook.stop();
-        } catch(const std::exception& e){
-            std::cerr<<"Error"<<e.what()<<std::endl;
+        while (g_running){
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+
+        if (cfg_.snapshots && cfg_.updates && (cfg_.type == "depth")) orderbook.stop();
+        if (cfg_.aggTrades) trades.stop();
     }
 }
 
 int main(int argc, char* argv[]) {
     try {
+        std::signal(SIGINT, oraculum::handleSignal);
         oraculum::oraculum oracul(argc,argv);
         oracul.run();
         return 0;

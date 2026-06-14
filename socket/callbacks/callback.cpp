@@ -3,7 +3,7 @@
 
 
 
-std::function<void(const ix::WebSocketMessagePtr& msg, std::function<void(const ix::WebSocketMessagePtr&)> callback)> OnReceivedMessageCallback = [](const ix::WebSocketMessagePtr& msg,std::function<void(const ix::WebSocketMessagePtr&)> callback)->void {
+std::function<void(const ix::WebSocketMessagePtr&, std::function<void(const ix::WebSocketMessagePtr&)> callback)> OnReceivedMessageCallback = [](const ix::WebSocketMessagePtr& msg,std::function<void(const ix::WebSocketMessagePtr&)> callback)->void {
     if (msg->type == ix::WebSocketMessageType::Message){
         callback(msg);
     }

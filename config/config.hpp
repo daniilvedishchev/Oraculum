@@ -8,6 +8,8 @@ namespace oraculum {
         std::string provider = "binance";
         std::string symbol;
         std::string type;
+        
+        std::optional<std::string> tf;
 
         double stepSize;
         double tickSize;
@@ -21,5 +23,6 @@ namespace oraculum {
         bool features = true;
         bool aggTrades = false;
         bool liquidations = false;
+
     };
 }

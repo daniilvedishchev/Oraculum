@@ -14,7 +14,7 @@ namespace oraculum {
         FileHandle oraculumOutputs::* target;
     };
 
-    std::unordered_map<const std::string, const std::string> marketEventToFileHeader = {
+    std::unordered_map<std::string, std::string> marketEventToFileHeader = {
        {"aggregatedTrades", aggregatedTradesHeader},
        {"features", featuresHeader}
     };
