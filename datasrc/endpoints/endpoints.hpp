@@ -28,4 +28,12 @@ namespace oraculum {
         const std::string& base = resolveConnectionBaseUrl(urls,Connection::Symbols);
         return base;
     }
+
+    inline std::string makeAggregateTradeEndpoint(const Config& cfg){
+        if (resolveProviderOrThrow(cfg.provider) == Provider::Binance) {
+            return toLower(cfg.symbol) + "@aggTrade@100ms";
+        }
+
+        throw std::runtime_error("Orderbook update not supported by this provider.");
+    }
 }

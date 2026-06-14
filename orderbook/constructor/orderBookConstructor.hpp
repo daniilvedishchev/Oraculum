@@ -8,9 +8,11 @@
 #include <optional>
 #include <mutex>
 #include <condition_variable>
+#include <functional>
 
 #include "config/config.hpp"
 #include "connector/builder/builder.hpp"
+#include "orderbook/depth/depthUpdate.hpp"
 #include "socket/ring/ringBuffer.hpp"
 #include "connector/retry/retry.hpp"
 #include "datasrc/endpoints/endpoints.hpp"
@@ -25,13 +27,13 @@ namespace oraculum {
     class OrderBookConstructor {
     private:
         Config& cfg_;
-        OraculumSocket& SOCKET_;
         FileManager& fm_;
         CacheService& cache_;
 
         bool FEATURES_ON;
 
         std::optional<FeatureEngine> featureEngine_;
+        std::optional<OraculumSocket<DepthUpdate>> socket_;
 
         std::string DEPTH_;
         std::string SYMBOL_;
@@ -65,8 +67,11 @@ namespace oraculum {
         void consume();
 
         void createDirectories();
+
+        std::function<void(const ix::WebSocketMessagePtr&)> orderBookUpdateMsgCallback;
+
     public:
-        OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket, CacheService& cache);
+        OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache);
         std::optional<LocalOrderBook> localBook_;
         ~OrderBookConstructor();
         nlohmann::json OrderBookSnapshotAfterFirstUpdate();

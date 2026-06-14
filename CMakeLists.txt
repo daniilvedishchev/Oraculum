@@ -4,6 +4,7 @@ project(Oraculum)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(external/cpr)
 add_subdirectory(external/json)
@@ -47,6 +48,7 @@ add_executable(ORACULUM
     cli/cli.cpp
     socket/oraculumSocket/oraculumSocket.cpp
     socket/callbacks/callback.cpp
+    trades/aggregated/aggregateTradesStream.cpp
 
 )
 

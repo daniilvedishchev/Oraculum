@@ -8,4 +8,4 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
 
-extern std::function<std::string(const ix::WebSocketMessagePtr& msg)> OnReceivedMessageCallback;
+extern std::function<void(const ix::WebSocketMessagePtr& msg, std::function<void(const ix::WebSocketMessagePtr&)> callback)> OnReceivedMessageCallback;

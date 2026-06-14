@@ -1,8 +1,11 @@
 #include "socket/callbacks/callback.hpp"
+#include <functional>
 
-std::function<std::string(const ix::WebSocketMessagePtr& msg)> OnReceivedMessageCallback = [](const ix::WebSocketMessagePtr& msg)->std::string{
+
+
+std::function<void(const ix::WebSocketMessagePtr& msg, std::function<void(const ix::WebSocketMessagePtr&)> callback)> OnReceivedMessageCallback = [](const ix::WebSocketMessagePtr& msg,std::function<void(const ix::WebSocketMessagePtr&)> callback)->void {
     if (msg->type == ix::WebSocketMessageType::Message){
-        return msg->str;
+        callback(msg);
     }
     if (msg->type == ix::WebSocketMessageType::Open){
         std::cout << "Connection established." << std::endl;
@@ -11,5 +14,5 @@ std::function<std::string(const ix::WebSocketMessagePtr& msg)> OnReceivedMessage
         throw std::runtime_error("Connection error occured:" + msg->errorInfo.reason + "\n");
     }
 
-    return "";
+    return;
 };

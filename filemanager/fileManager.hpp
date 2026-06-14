@@ -15,6 +15,8 @@ class FileManager {
 
         FileHandle createFile(const std::string& symbol, const std::string& type, bool overwrite = false) const;
         FileHandle createFile(const std::string& name, bool overwrite = false) const;
+        FileHandle createFile(const std::string& name, const std::filesystem::path path,bool overwrite) const;
+
 
         std::filesystem::path environmentPath() const;
 

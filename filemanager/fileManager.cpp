@@ -1,6 +1,7 @@
 #include "filemanager/fileManager.hpp"
 
 #include <cstdlib>
+#include <filesystem>
 
 namespace oraculum {
 
@@ -29,6 +30,20 @@ FileHandle FileManager::createFile(const std::string& name, bool overwrite) cons
     }
 
     return FileHandle{std::move(stream), path};
+}
+
+FileHandle FileManager::createFile(const std::string& name, const std::filesystem::path path,bool overwrite) const {
+    const std::ios::openmode mode = overwrite ? std::ios::out : std::ios::app;
+    const std::filesystem::path filepath = path / name;
+
+    std::filesystem::create_directories(filepath.parent_path());
+
+    std::ofstream stream(filepath, mode);
+    if (!stream) {
+        throw std::runtime_error("Cannot open file: " + filepath.string());
+    }
+
+    return FileHandle{std::move(stream), filepath};
 }
 
 FileHandle FileManager::createFile(const std::string& symbol, const std::string& type, bool overwrite) const {

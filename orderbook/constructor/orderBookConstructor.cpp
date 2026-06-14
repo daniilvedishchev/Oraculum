@@ -1,4 +1,7 @@
 #include "orderbook/constructor/orderBookConstructor.hpp"
+#include "datasrc/endpoints/endpoints.hpp"
+#include "orderbook/depth/depthUpdate.hpp"
+#include <functional>
 
 namespace oraculum{
     std::int64_t nowMs() {
@@ -7,12 +10,12 @@ namespace oraculum{
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, OraculumSocket& socket, CacheService& cache) : cfg_(cfg), 
-                                                DEPTH_(cfg.depth.value()), 
-                                                SYMBOL_(cfg.symbol), 
-                                                SOCKET_(socket), 
-                                                fm_(fm),
-                                                cache_(cache) {
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache) : cfg_(cfg), 
+            DEPTH_(cfg.depth.value()), 
+            SYMBOL_(cfg.symbol), 
+            fm_(fm),
+            cache_(cache)
+        {
         
         firstUpdateReceived_= false;
         FEATURES_ON = cfg_.features;
@@ -30,6 +33,25 @@ namespace oraculum{
             FEATURES_ = fm.createFile((FEATURES_DIR / "features.csv").string());
             FEATURES_.writeLine(featureStructure);
         }
+
+        orderBookUpdateMsgCallback = [this](const ix::WebSocketMessagePtr& msg) {
+            try {
+                if (auto upd = getOrderBookUpdate(msg)) {
+                    bool ok = socket_.value().buffer_.push(std::move(*upd));
+                    if (!ok) {
+                        std::cerr << "Buffer overflow, missed updates.";
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cerr << e.what() << std::endl;
+            }
+        };
+
+        socket_.emplace(cfg_.provider,
+                        buildUrl(resolveProviderOrThrow(cfg_.provider),
+                        Connection::WebSocket,
+                        makeOrderBookUpdateEndpoint(cfg_)),
+                        orderBookUpdateMsgCallback);
         
     }
 
@@ -102,25 +124,16 @@ namespace oraculum{
     }
 
     void OrderBookConstructor::startSocket(){
-        SOCKET_.socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
+        socket_.value().socket_.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg){
             if (msg->type == ix::WebSocketMessageType::Error){
                 std::cerr << "Error connecting to websocket: " << msg->errorInfo.reason << std::endl;
                 return ;
             }
             if (msg->type == ix::WebSocketMessageType::Message){
-                try {
-                    if (auto upd = getOrderBookUpdate(msg)){
-                        bool ok = SOCKET_.orderBookUpdateBuffer_.push(std::move(*upd));
-                        if (!ok){
-                            std::cerr<< "Buffer overflow, missed updates.";
-                        }
-                    }
-                } catch (const std::exception& e){
-                    std::cerr << e.what() << std::endl;
-                }
+                
             }
         });
-        SOCKET_.socket_.start();
+        socket_.value().socket_.start();
     }
 
     void OrderBookConstructor::start(){
@@ -154,8 +167,8 @@ namespace oraculum{
         std::cerr << "[DEBUG] stop called\n";
         running_= false;
 
-        SOCKET_.socket_.stop(1000, "Normal closure");
-        SOCKET_.orderBookUpdateBuffer_.close();
+        socket_.value().socket_.stop(1000, "Normal closure");
+        socket_.value().buffer_.close();
 
         if (consumerThread_.joinable()) {
             consumerThread_.join();
@@ -164,7 +177,7 @@ namespace oraculum{
 
     void OrderBookConstructor::consume(){
         while (running_){
-            auto update = SOCKET_.orderBookUpdateBuffer_.pop();
+            auto update = socket_.value().buffer_.pop();
             if (!update) break;
 
             bool needResync = update.value().firstUpdateId > localBook_->LAST_UPDATE_ID + 1;
@@ -176,9 +189,8 @@ namespace oraculum{
                     std::lock_guard<std::mutex> lock(firstUpdateMutex_);
                     firstUpdateReceived_ = false;
                 }
-                auto snap = OrderBookSnapshotAfterFirstUpdate();
-                MetaData meta = cache_.getMetaBySymbolOrThrow(cfg_.symbol); 
-                localBook_.emplace(std::move(snap),meta.tickSize,meta.stepSize);
+                auto snap = OrderBookSnapshotAfterFirstUpdate(); 
+                localBook_.emplace(std::move(snap),cfg_.tickSize,cfg_.stepSize);
 
                 if (FEATURES_ON) featureEngine_.emplace(*localBook_,FEATURES_);
 

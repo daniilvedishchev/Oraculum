@@ -1,8 +1,9 @@
 #include "socket/oraculumSocket/oraculumSocket.hpp"
 namespace oraculum {
-    OraculumSocket::OraculumSocket(const std::string& providerName, const std::string& connectorUrl) 
-    : socket_{},connectorUrl_(connectorUrl),orderBookUpdateBuffer_(){
+    template<typename BufferItem>
+    OraculumSocket<BufferItem>::OraculumSocket(const std::string& providerName, const std::string& connectorUrl, socketCallback& onMsgCallback) 
+    : socket_{},connectorUrl_(connectorUrl),buffer_(),callback_(onMsgCallback){
         socket_.setUrl(connectorUrl_);
-        socket_.setOnMessageCallback(OnReceivedMessageCallback);
+        socket_.setOnMessageCallback(callback_);
     }
 }

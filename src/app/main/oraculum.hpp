@@ -6,6 +6,8 @@
 #include "cacheservice/CacheService.hpp"
 #include "src/app/validation/validator.hpp"
 #include "orderbook/constructor/orderBookConstructor.hpp"
+#include "filemanager/registry/registry.hpp"
+#include <optional>
 
 namespace oraculum {
     class oraculum{
@@ -15,6 +17,7 @@ namespace oraculum {
         FileManager fm_;
         CacheService cache_;
         Validator validator_;
+        std::optional<FileRegistry> registry_;
 
         void writeOrderBook();
         void setConfigMetadata();
