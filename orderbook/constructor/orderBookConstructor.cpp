@@ -1,6 +1,8 @@
 #include "orderbook/constructor/orderBookConstructor.hpp"
 #include "datasrc/endpoints/endpoints.hpp"
+#include "filemanager/registry/registry.hpp"
 #include "orderbook/depth/depthUpdate.hpp"
+#include "orderbook/features/structure/header.hpp"
 #include <functional>
 
 namespace oraculum{
@@ -10,28 +12,18 @@ namespace oraculum{
         ).count();
     }
 
-    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache) : cfg_(cfg), 
-            DEPTH_(cfg.depth.value()), 
-            SYMBOL_(cfg.symbol), 
+    OrderBookConstructor::OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache, FileRegistry& registry) : 
+            cfg_(cfg), 
             fm_(fm),
-            cache_(cache)
+            cache_(cache),
+            registry_(registry)
         {
         
         firstUpdateReceived_= false;
-        FEATURES_ON = cfg_.features;
-        SNAPSHOT_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "snapshots";
-        UPDATES_DIR__ = fm.environmentPath() / cfg_.symbol / "orderbook" / "updates";
 
-        UPDATES_PATH__ = UPDATES_DIR__/makeUpdateFileName();
-
-        createDirectories();
-
-        UPDATES_ = fm.createFile(UPDATES_PATH__.string());
         if (FEATURES_ON) {
-            auto FEATURES_DIR = fm.environmentPath() / cfg.symbol / "features";
-            std::filesystem::create_directories(FEATURES_DIR);
-            FEATURES_ = fm.createFile((FEATURES_DIR / "features.csv").string());
-            FEATURES_.writeLine(featureStructure);
+
+            FEATURES_.writeLine(featuresHeader);
         }
 
         orderBookUpdateMsgCallback = [this](const ix::WebSocketMessagePtr& msg) {
@@ -75,29 +67,7 @@ namespace oraculum{
 
         return snapshot;
     }
-
-    void OrderBookConstructor::createDirectories(){
-        std::filesystem::create_directories(SNAPSHOT_DIR__);
-        std::filesystem::create_directories(UPDATES_DIR__);
-    }
     
-    std::string OrderBookConstructor::makeSnapshotFileName(const std::uint64_t& lastUpdateId){
-       return SYMBOL_ + "-" +
-            "DEPTH" + "-" +
-            DEPTH_ + "-" +
-            "snapshot-" +
-            std::to_string(lastUpdateId) +
-            ".json";
-    }
-
-    std::string OrderBookConstructor::makeUpdateFileName(){
-       return SYMBOL_ + "-" +
-            "DEPTH" + "-" +
-            DEPTH_ + "-" +
-            "update" +
-            ".json";
-    }
-
     /** 
         * @brief This function sets up the first updateID , usefull for orderbook reconstruction
         * and moves update to the buffer
@@ -215,23 +185,18 @@ namespace oraculum{
         snapshot = parseOrderBookSnapshot();
         SNAPSHOT_ID = snapshot.at("lastUpdateId").get<long long>();
 
-        const std::string fileName = makeSnapshotFileName(SNAPSHOT_ID);
-
-        SNAPSHOT_PATH__ = SNAPSHOT_DIR__ / fileName;
-
         nlohmann::json storedSnapshot = {
             {"provider", cfg_.provider},
-            {"symbol", SYMBOL_},
+            {"symbol", cfg_.symbol},
             {"market", "spot"},
             {"type", cfg_.type},
-            {"depth", DEPTH_},
+            {"depth", cfg_.depth},
             {"local_ts_ms", nowMs()},
             {"last_update_id", SNAPSHOT_ID},
             {"snapshot", snapshot}
         };
 
-        FileHandle fileSnapshot = fm_.createFile(SNAPSHOT_PATH__.string());
-        fileSnapshot.writeLine(storedSnapshot.dump(2));
+        registry_.files.snapshots.writeLine(storedSnapshot.dump(2));
 
         return storedSnapshot;
     }

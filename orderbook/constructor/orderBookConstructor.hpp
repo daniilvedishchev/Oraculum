@@ -12,6 +12,7 @@
 
 #include "config/config.hpp"
 #include "connector/builder/builder.hpp"
+#include "filemanager/registry/registry.hpp"
 #include "orderbook/depth/depthUpdate.hpp"
 #include "socket/ring/ringBuffer.hpp"
 #include "connector/retry/retry.hpp"
@@ -29,36 +30,21 @@ namespace oraculum {
         Config& cfg_;
         FileManager& fm_;
         CacheService& cache_;
-
-        bool FEATURES_ON;
+        FileRegistry& registry_;
 
         std::optional<FeatureEngine> featureEngine_;
         std::optional<OraculumSocket<DepthUpdate>> socket_;
 
-        std::string DEPTH_;
-        std::string SYMBOL_;
         long long SNAPSHOT_ID;
 
         std::atomic<bool> firstUpdateReceived_;
         std::condition_variable firstUpdateCv_;
         std::mutex firstUpdateMutex_;
 
-        std::filesystem::path SNAPSHOT_DIR__;
-        std::filesystem::path SNAPSHOT_PATH__;
-        std::filesystem::path UPDATES_DIR__;
-        std::filesystem::path UPDATES_PATH__;
-
         nlohmann::json snapshot;
-
-        FileHandle UPDATES_;
-        FileHandle SNAPSHOT_;
-        FileHandle FEATURES_;
 
         std::atomic<bool> running_{false};
         std::thread consumerThread_;
-
-        std::string makeSnapshotFileName(const std::uint64_t& lastUpdateId);
-        std::string makeUpdateFileName();
 
         nlohmann::json parseOrderBookSnapshot();
         std::optional<DepthUpdate> getOrderBookUpdate(const ix::WebSocketMessagePtr& msg);
@@ -66,12 +52,10 @@ namespace oraculum {
         void startSocket();
         void consume();
 
-        void createDirectories();
-
         std::function<void(const ix::WebSocketMessagePtr&)> orderBookUpdateMsgCallback;
 
     public:
-        OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache);
+        OrderBookConstructor(Config& cfg, FileManager& fm, CacheService& cache, FileRegistry& registry);
         std::optional<LocalOrderBook> localBook_;
         ~OrderBookConstructor();
         nlohmann::json OrderBookSnapshotAfterFirstUpdate();

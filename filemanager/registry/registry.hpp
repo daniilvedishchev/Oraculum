@@ -1,9 +1,12 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "config/config.hpp"
 #include "filemanager/file/file.hpp"
 #include "filemanager/fileManager.hpp"
-#include <unordered_map>
+#include "trades/structure/trades.h"
+#include "orderbook/features/structure/featureStructure.hpp"
 
 struct oraculumOutputs{
     oraculum::FileHandle liquidations;
@@ -15,11 +18,13 @@ struct oraculumOutputs{
 
 namespace oraculum {
     class FileRegistry {
-        FileManager& manager_;
-        Config& cfg_;
-        oraculumOutputs files_;
-        void scanConfigOptionsCreateFiles();
+        private:
+            FileManager& manager_;
+            Config& cfg_;
+            void scanConfigOptionsCreateFiles();
         public:
             FileRegistry(Config& ,FileManager&);
+            oraculumOutputs getAllFileObjects();
+            oraculumOutputs files;
     };
 }

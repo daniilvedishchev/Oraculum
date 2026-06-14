@@ -2,7 +2,7 @@
 
 #include <string>
 
-inline const std::string featureStructure =
+inline const std::string featuresHeader =
     "ts_local_ms,ts_provider_ms,latency_ms,spread_ticks,best_ask,best_bid,mid,"
     "microprice_l1,relative_microprice_bps,"
     "imb_10,imb_20,imb_50,imb_100,imb_200,imb_500,imb_1000,"

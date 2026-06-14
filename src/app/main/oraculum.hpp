@@ -20,6 +20,7 @@ namespace oraculum {
         std::optional<FileRegistry> registry_;
 
         void writeOrderBook();
+        void writeAggregatedTrades();
         void setConfigMetadata();
     public:
         oraculum(int argc, char* argv[]);

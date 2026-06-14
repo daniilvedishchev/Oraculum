@@ -20,9 +20,19 @@ namespace oraculum {
 
     void oraculum::run(){
         validator_.validate();
-        if (cfg_.writeLiveData && (cfg_.type == "depth")){
+        if (cfg_.snapshots && cfg_.updates && (cfg_.type == "depth")){
             writeOrderBook();
         }
+        if (cfg_.aggTrades) {
+            writeAggregatedTrades();
+        }
+        // if (cfg_.liquidations) {
+        //     return;
+        // }
+    }
+
+    void oraculum::writeAggregatedTrades(){
+        
     }
 
     void oraculum::writeOrderBook(){
