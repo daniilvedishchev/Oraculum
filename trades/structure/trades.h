@@ -10,6 +10,7 @@ price,quantity,is_buyer_maker";
 struct AggregateTrade {
     int64_t event_time_ms;
     int64_t trade_time_ms;
+    int64_t latency_ms;
 
     int64_t aggregate_trade_id;
 

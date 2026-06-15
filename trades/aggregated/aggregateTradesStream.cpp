@@ -7,6 +7,7 @@
 #include "ixwebsocket/IXWebSocketMessage.h"
 #include "nlohmann/json_fwd.hpp"
 #include "trades/structure/trades.h"
+#include <chrono>
 #include <cstdint>
 #include <thread>
 
@@ -31,9 +32,14 @@ namespace oraculum {
 
     AggregateTrade AggregateTradeStream::makeTrade(const ix::WebSocketMessagePtr& msg){
         const auto json = nlohmann::json::parse(msg->str);
+        const auto event_time_ms = json.at("E").get<int64_t>();
+        const auto local_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+
         return AggregateTrade{
-                            .event_time_ms = json.at("E").get<int64_t>(),
+                            .event_time_ms = event_time_ms,
                             .trade_time_ms = json.at("T").get<int64_t>(),
+                            .latency_ms = local_time_ms - event_time_ms,
                             .aggregate_trade_id = json.at("a").get<int64_t>(),
                             .price = std::llround(std::stod(json.at("p").get<std::string>())/cfg_.tickSize),
                             .quantity = std::llround(std::stod(json.at("q").get<std::string>())/cfg_.stepSize),
@@ -52,12 +58,13 @@ namespace oraculum {
 
     std::string AggregateTradeStream::tradeToCsv(AggregateTrade& trade){
         std::ostringstream oss;
-        oss << trade.trade_time_ms << ','
-            << trade.event_time_ms << ","
-            << trade.aggregate_trade_id << ","
-            << trade.is_buyer_maker << ","
+        oss << trade.event_time_ms << ','
+            << trade.trade_time_ms << ','
+            << trade.latency_ms << ','
+            << trade.aggregate_trade_id << ','
             << trade.price << ","
-            << trade.quantity;
+            << trade.quantity << ','
+            << trade.is_buyer_maker;
         return oss.str();
     }
 
