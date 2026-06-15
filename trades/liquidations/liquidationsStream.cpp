@@ -84,7 +84,7 @@ namespace oraculum {
 
     void LiquidationsStream::stop(){
         status_ = Status::STOPPED;
-        socket_->socket_.stop();
+        socket_->socket_.stop(1000, "Normal closure");
         socket_->buffer_.close();
         if (thread_.joinable()){
             thread_.join();
