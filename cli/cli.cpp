@@ -36,6 +36,7 @@ namespace oraculum {
                         please check if '-orderbook' is placed before '-features' keyword.");
                     }
                     cfg.features = true;
+                    break;
                 case Keyword::Provider:
                     if (i + 1 >= cliSize_) {
                         throw std::runtime_error("Missing value after '-provider'.");
