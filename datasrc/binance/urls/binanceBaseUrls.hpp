@@ -1,6 +1,6 @@
 #pragma once
 
-#include "datasrc/providers/providers.hpp"
+#include "datasrc/providers/baseUrl.hpp"
 
 namespace oraculum {
     inline const ProviderBase kBinanceBaseUrls = {

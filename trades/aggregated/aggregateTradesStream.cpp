@@ -35,9 +35,9 @@ namespace oraculum {
                             .event_time_ms = json.at("E").get<int64_t>(),
                             .trade_time_ms = json.at("T").get<int64_t>(),
                             .aggregate_trade_id = json.at("a").get<int64_t>(),
-                            .is_buyer_maker = json.at("m").get<bool>(),
                             .price = std::llround(std::stod(json.at("p").get<std::string>())/cfg_.tickSize),
-                            .quantity = std::llround(std::stod(json.at("q").get<std::string>())/cfg_.stepSize)
+                            .quantity = std::llround(std::stod(json.at("q").get<std::string>())/cfg_.stepSize),
+                            .is_buyer_maker = json.at("m").get<bool>()
         };
     }
 
